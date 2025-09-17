@@ -3,6 +3,8 @@ export default function Labs() {
   return (
     <div id="wd-labs">
       <h1>Labs</h1>
+      <p>Student: Benjamin Jaccaci</p>
+      <p>Section: Fall 2025</p>
       <ul>
         <li>
           <Link href="/Labs/Lab1" id="wd-lab1-link">
@@ -22,6 +24,11 @@ export default function Labs() {
         <li>
           <Link href="/" id="wd-kambaz-link">
             Kambaz{" "}
+          </Link>{" "}
+        </li>
+        <li>
+          <Link href="https://github.com/benjaccaci/ben_webdev" id="wd-github">
+            GitHub{" "}
           </Link>{" "}
         </li>
       </ul>
