@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 export default function Assignments() {
   return (
     <div id="wd-assignments">
@@ -9,12 +11,12 @@ export default function Assignments() {
       </h3>
       <ul id="wd-assignment-list">
         <li className="wd-assignment-list-item">
-          <a
+          <Link
             href="/Courses/1234/Assignments/123"
             className="wd-assignment-link"
           >
             A1 - ENV + HTML
-          </a>
+          </Link>
           <br />
           <div>
             Multiple Modules | <b>Not available until</b> May 6 at 12:00am
@@ -23,12 +25,12 @@ export default function Assignments() {
           </div>
         </li>
         <li className="wd-assignment-list-item">
-          <a
+          <Link
             href="/Courses/1234/Assignments/124"
             className="wd-assignment-link"
           >
             A2 - CSS Intro
-          </a>
+          </Link>
           <br />
           <div>
             Module 2 | <b>Not available until</b> May 10 at 12:00am
@@ -37,12 +39,12 @@ export default function Assignments() {
           </div>
         </li>
         <li className="wd-assignment-list-item">
-          <a
+          <Link
             href="/Courses/1234/Assignments/125"
             className="wd-assignment-link"
           >
             A3 - JavaScript Basics
-          </a>
+          </Link>
           <br />
           <div>
             Module 3 | <b>Not available until</b> May 17 at 12:00am
@@ -51,12 +53,12 @@ export default function Assignments() {
           </div>
         </li>
         <li className="wd-assignment-list-item">
-          <a
+          <Link
             href="/Courses/1234/Assignments/126"
             className="wd-assignment-link"
           >
             A4 - React Components
-          </a>
+          </Link>
           <br />
           <div>
             Module 4 | <b>Not available until</b> May 24 at 12:00am
