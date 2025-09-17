@@ -204,7 +204,6 @@ export default function Lab1() {
             value="Wonderland"
             title="The last name"
           />
-          {/* copy rest of form elements here  */}
           <h4>Other HTML field types</h4>
           <label htmlFor="wd-text-fields-email"> Email: </label>
           <input
