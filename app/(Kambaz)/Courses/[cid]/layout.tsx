@@ -12,7 +12,7 @@ export default async function CoursesLayout({
       <table>
         <tbody>
           <tr>
-            <td valign="top" width="200">
+            <td valign="top" width="200" className="d-none d-sm-block">
               {" "}
               <CourseNavigation />{" "}
             </td>

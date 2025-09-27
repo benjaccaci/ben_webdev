@@ -10,7 +10,7 @@ export default function Home() {
               {" "}
               <Modules />{" "}
             </td>
-            <td valign="top">
+            <td valign="top" className="d-none d-lg-block">
               {" "}
               <CourseStatus />{" "}
             </td>

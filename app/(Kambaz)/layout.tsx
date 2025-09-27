@@ -7,7 +7,7 @@ export default function KambazLayout({
     <table>
       <tbody>
         <tr>
-          <td valign="top" width="200">
+          <td valign="top" width="200" className="d-none d-md-block">
             {" "}
             <KambazNavigation />{" "}
           </td>
