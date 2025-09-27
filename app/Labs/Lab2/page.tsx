@@ -19,6 +19,7 @@ import BootstrapLists from "./BootstrapLists";
 
 import ReactIcons from "./ReactIcons";
 import BootstrapForms from "./BootstrapForms";
+import BootstrapNavigation from "./BootstrapNavigation";
 export default function Lab2() {
   return (
     <Container>
@@ -94,6 +95,7 @@ export default function Lab2() {
         <BootstrapTables />
         <BootstrapLists />
         <BootstrapForms />
+        <BootstrapNavigation />
       </div>
     </Container>
   );
