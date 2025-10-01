@@ -45,7 +45,7 @@ export default function CourseNavigation() {
         Grades{" "}
       </Link>
       <Link
-        href="/Courses/1234/People"
+        href="/Courses/1234/People/Table"
         className="list-group-item text-danger border-0"
       >
         People{" "}

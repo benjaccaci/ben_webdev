@@ -1,80 +1,181 @@
+"use client";
+
 import Link from "next/link";
+import { Button, Form, InputGroup, ListGroup } from "react-bootstrap";
+import { FaSearch, FaPlus, FaCheckCircle } from "react-icons/fa";
+import { FaBook } from "react-icons/fa6";
+import { IoEllipsisVertical } from "react-icons/io5";
+import { VscTriangleDown } from "react-icons/vsc";
 
 export default function Assignments() {
   return (
-    <div id="wd-assignments">
-      <input placeholder="Search for Assignments" id="wd-search-assignment" />
-      <button id="wd-add-assignment-group">+ Group</button>
-      <button id="wd-add-assignment">+ Assignment</button>
-      <h3 id="wd-assignments-title">
-        ASSIGNMENTS 40% of Total <button>+</button>
+    <div id="wd-assignments" className="p-3">
+      <div className="d-flex justify-content-between align-items-center mb-3">
+        <InputGroup style={{ maxWidth: "300px" }}>
+          <InputGroup.Text>
+            <FaSearch />
+          </InputGroup.Text>
+          <Form.Control placeholder="Search..." id="wd-search-assignment" />
+        </InputGroup>
+
+        <div>
+          <Button
+            variant="secondary"
+            size="lg"
+            className="me-2"
+            id="wd-add-assignment-group"
+          >
+            <FaPlus className="me-2" />
+            Group
+          </Button>
+          <Button variant="danger" size="lg" id="wd-add-assignment">
+            <FaPlus className="me-2" />
+            Assignment
+          </Button>
+        </div>
+      </div>
+
+      <h3
+        id="wd-assignments-title"
+        className="d-flex justify-content-between align-items-center border p-2 bg-light"
+      >
+        <span>
+          <IoEllipsisVertical />
+          <VscTriangleDown className="me-2" />
+          ASSIGNMENTS
+        </span>
+        <span>
+          40% of Total{" "}
+          <Button size="sm" variant="light">
+            +
+          </Button>
+          <IoEllipsisVertical />
+        </span>
       </h3>
-      <ul id="wd-assignment-list">
-        <li className="wd-assignment-list-item">
-          <Link
-            href="/Courses/1234/Assignments/123"
-            className="wd-assignment-link"
-          >
-            A1 - ENV + HTML
-          </Link>
-          <br />
-          <div>
-            Multiple Modules | <b>Not available until</b> May 6 at 12:00am
-            <br />
-            <b>Due</b> May 13 at 11:59pm | 100 pts
+
+      <ListGroup className="mb-4">
+        <ListGroup.Item className="d-flex border-0 border-start border-5 border-success">
+          <IoEllipsisVertical className="fs-4 align-self-center" />
+          <FaBook className="text-success fs-4 align-self-center me-3" />
+          <div className="flex-grow-1">
+            <Link
+              href="/Courses/1234/Assignments/123"
+              className="fw-bold text-dark text-decoration-none"
+            >
+              A1 - ENV + HTML
+            </Link>
+            <div className="text-muted small">
+              <span className="text-danger">
+                {" "}
+                <b>Multiple Modules </b>
+              </span>{" "}
+              | <b>Not available until</b> May 3 at 12:00am <br />
+              <b>Due</b> May 10 at 11:59pm | 50 pts
+            </div>
           </div>
-        </li>
-        <li className="wd-assignment-list-item">
-          <Link
-            href="/Courses/1234/Assignments/124"
-            className="wd-assignment-link"
-          >
-            A2 - CSS Intro
-          </Link>
-          <br />
-          <div>
-            Module 2 | <b>Not available until</b> May 10 at 12:00am
-            <br />
-            <b>Due</b> May 17 at 11:59pm | 100 pts
+          <FaCheckCircle className="text-success fs-4 align-self-center ms-3" />
+          <IoEllipsisVertical className="fs-4 align-self-center ms-3" />
+        </ListGroup.Item>
+
+        <ListGroup.Item className="d-flex border-0 border-start border-5 border-success">
+          <IoEllipsisVertical className="fs-4 align-self-center" />
+          <FaBook className="text-success fs-4 align-self-center me-3" />
+          <div className="flex-grow-1">
+            <Link
+              href="/Courses/1234/Assignments/124"
+              className="fw-bold text-dark text-decoration-none"
+            >
+              A2 - CSS Intro
+            </Link>
+            <div className="text-muted small">
+              <span className="text-danger">
+                {" "}
+                <b>Module 2 </b>
+              </span>{" "}
+              | <b>Not available until</b> May 10 at 12:00am <br />
+              <b>Due</b> May 17 at 11:59pm | 100 pts
+            </div>
           </div>
-        </li>
-        <li className="wd-assignment-list-item">
-          <Link
-            href="/Courses/1234/Assignments/125"
-            className="wd-assignment-link"
-          >
-            A3 - JavaScript Basics
-          </Link>
-          <br />
-          <div>
-            Module 3 | <b>Not available until</b> May 17 at 12:00am
-            <br />
-            <b>Due</b> May 24 at 11:59pm | 100 pts
+          <FaCheckCircle className="text-success fs-4 align-self-center ms-3" />
+          <IoEllipsisVertical className="fs-4 align-self-center ms-3" />
+        </ListGroup.Item>
+
+        <ListGroup.Item className="d-flex border-0 border-start border-5 border-success">
+          <IoEllipsisVertical className="fs-4 align-self-center" />
+          <FaBook className="text-success fs-4 align-self-center me-3" />
+          <div className="flex-grow-1">
+            <Link
+              href="/Courses/1234/Assignments/125"
+              className="fw-bold text-dark text-decoration-none"
+            >
+              A3 - JavaScript Basics
+            </Link>
+            <div className="text-muted small">
+              <span className="text-danger">
+                {" "}
+                <b>Module 3 </b>
+              </span>{" "}
+              | <b>Not available until</b> May 17 at 12:00am <br />
+              <b>Due</b> May 24 at 11:59pm | 100 pts
+            </div>
           </div>
-        </li>
-        <li className="wd-assignment-list-item">
-          <Link
-            href="/Courses/1234/Assignments/126"
-            className="wd-assignment-link"
-          >
-            A4 - React Components
-          </Link>
-          <br />
-          <div>
-            Module 4 | <b>Not available until</b> May 24 at 12:00am
-            <br />
-            <b>Due</b> May 31 at 11:59pm | 100 pts
-          </div>
-        </li>
-      </ul>
-      <h3 id="wd-quizzes-title">
-        QUIZZES 20% of Total <button>+</button>
+          <FaCheckCircle className="text-success fs-4 align-self-center ms-3" />
+          <IoEllipsisVertical className="fs-4 align-self-center ms-3" />
+        </ListGroup.Item>
+      </ListGroup>
+
+      <h3
+        id="wd-quizzes-title"
+        className="d-flex justify-content-between align-items-center border p-2 bg-light"
+      >
+        <span>
+          <IoEllipsisVertical />
+          <VscTriangleDown className="me-2" />
+          QUIZZES
+        </span>
+        <span>
+          20% of Total{" "}
+          <Button size="sm" variant="light">
+            +
+          </Button>
+          <IoEllipsisVertical />
+        </span>
       </h3>
-      <h3 id="wd-exams-title">
-        EXAMS 30% of Total <button>+</button>
+
+      <h3
+        id="wd-exams-title"
+        className="d-flex justify-content-between align-items-center border p-2 bg-light"
+      >
+        <span>
+          <IoEllipsisVertical />
+          <VscTriangleDown className="me-2" />
+          EXAMS
+        </span>
+        <span>
+          30% of Total{" "}
+          <Button size="sm" variant="light">
+            +
+          </Button>
+          <IoEllipsisVertical />
+        </span>
       </h3>
-      <h3 id="wd-project-title">
-        PROJECT 10% of Total <button>+</button>
+
+      <h3
+        id="wd-project-title"
+        className="d-flex justify-content-between align-items-center border p-2 bg-light"
+      >
+        <span>
+          <IoEllipsisVertical />
+          <VscTriangleDown className="me-2" />
+          PROJECT
+        </span>
+        <span>
+          10% of Total{" "}
+          <Button size="sm" variant="light">
+            +
+          </Button>
+          <IoEllipsisVertical />
+        </span>
       </h3>
     </div>
   );
