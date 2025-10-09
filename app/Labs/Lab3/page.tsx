@@ -13,6 +13,7 @@ import ForLoops from "./ForLoops";
 import MapFunction from "./MapFunction";
 import FindFunction from "./FindFunction";
 import FilterFunction from "./FilterFunction";
+import House from "./House";
 
 export default function Lab3() {
   return (
@@ -33,6 +34,7 @@ export default function Lab3() {
       <MapFunction />
       <FindFunction />
       <FilterFunction />
+      <House />
     </div>
   );
 }
