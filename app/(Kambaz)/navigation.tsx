@@ -10,14 +10,12 @@ import { CiBeaker1 } from "react-icons/ci";
 export default function KambazNavigation() {
   const pathname = usePathname();
   const links = [
-    { href: "/Account", label: "Account", icon: FaRegCircleUser },
     { href: "/Dashboard", label: "Dashboard", icon: AiOutlineDashboard },
     { href: "/Dashboard", label: "Courses", icon: LiaBookSolid },
     { href: "/Calendar", label: "Calendar", icon: IoCalendarOutline },
     { href: "/Inbox", label: "Inbox", icon: FaInbox },
     { href: "/Labs", label: "Labs", icon: CiBeaker1 },
   ];
-
   return (
     <ListGroup
       id="wd-kambaz-navigation"
@@ -32,6 +30,23 @@ export default function KambazNavigation() {
         className="bg-black border-0 text-center"
       >
         <img src="/images/NEU.png" width="75px" />
+      </ListGroupItem>
+      <ListGroupItem
+        as={Link}
+        href="/Account"
+        className={`text-center border-0 bg-black
+            ${
+              pathname.includes("Account")
+                ? "bg-white text-danger"
+                : "bg-black text-white"
+            }`}
+      >
+        <FaRegCircleUser
+          className={`fs-1 ${
+            pathname.includes("Account") ? "text-danger" : "text-white"
+          }`}
+        />{" "}
+        <br /> Account
       </ListGroupItem>
       {links.map(({ href, label, icon: Icon }) => (
         <ListGroupItem
