@@ -1,9 +1,20 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import "bootstrap/dist/css/bootstrap.min.css";
 import { Form, Row, Col, Card, Button, InputGroup } from "react-bootstrap";
+import { useParams } from "next/navigation";
+import Link from "next/link";
+import * as db from "../../../../Database";
 
 export default function AssignmentEditor() {
+  const { cid, aid } = useParams();
+  const assignment = db.assignments.find((a: any) => a._id === aid);
+
+  if (!assignment) {
+    return <div className="container py-3">Assignment not found</div>;
+  }
+
   return (
     <div id="wd-assignments-editor" className="container py-3">
       <Form>
@@ -14,7 +25,7 @@ export default function AssignmentEditor() {
           <Col sm={9}>
             <Form.Control
               id="wd-name"
-              defaultValue="A1 - ENV + HTML"
+              defaultValue={assignment.title}
               placeholder="Assignment name"
             />
           </Col>
@@ -32,14 +43,11 @@ export default function AssignmentEditor() {
           <Col sm={9}>
             <Card className="border-0 p-0">
               <Card.Body className="p-0">
-                <Form.Text className="d-block mb-2">
-                  The assignment is <a href="#!">available online</a>
-                </Form.Text>
                 <Form.Control
                   as="textarea"
                   rows={6}
                   id="wd-description"
-                  defaultValue="The assignment is available online Submit a link to the landing page of"
+                  defaultValue="The assignment is available online. Submit a link to the landing page of your project."
                 />
               </Card.Body>
             </Card>
@@ -51,7 +59,7 @@ export default function AssignmentEditor() {
             Points
           </Form.Label>
           <Col sm={4} md={3}>
-            <Form.Control id="wd-points" type="number" defaultValue={100} />
+            <Form.Control id="wd-points" type="number" defaultValue="100" />
           </Col>
         </Row>
 
@@ -150,7 +158,7 @@ export default function AssignmentEditor() {
             <Form.Control
               type="date"
               id="wd-due-date"
-              defaultValue="2000-01-21"
+              defaultValue="2024-05-13"
             />
           </Col>
         </Row>
@@ -168,7 +176,7 @@ export default function AssignmentEditor() {
             <Form.Control
               type="date"
               id="wd-available-from"
-              defaultValue="2000-01-14"
+              defaultValue="2024-05-06"
             />
           </Col>
         </Row>
@@ -186,7 +194,7 @@ export default function AssignmentEditor() {
             <Form.Control
               type="date"
               id="wd-available-until"
-              defaultValue="2000-01-28"
+              defaultValue="2024-05-20"
             />
           </Col>
         </Row>
@@ -196,8 +204,12 @@ export default function AssignmentEditor() {
             sm={{ span: 9, offset: 3 }}
             className="d-flex gap-2 justify-content-end"
           >
-            <Button variant="secondary">Cancel</Button>
-            <Button variant="danger">Save</Button>
+            <Link href={`/Courses/${cid}/Assignments`}>
+              <Button variant="secondary">Cancel</Button>
+            </Link>
+            <Link href={`/Courses/${cid}/Assignments`}>
+              <Button variant="danger">Save</Button>
+            </Link>
           </Col>
         </Row>
       </Form>
