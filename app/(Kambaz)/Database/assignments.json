@@ -1,0 +1,41 @@
+[
+  { "_id": "A101", "title": "Propulsion Assignment", "course": "RS101" },
+  { "_id": "A102", "title": "Combustion Analysis", "course": "RS101" },
+  { "_id": "A103", "title": "Nozzle Design Project", "course": "RS101" },
+
+  { "_id": "A201", "title": "Aerodynamics Quiz", "course": "RS102" },
+  { "_id": "A202", "title": "Flow Analysis", "course": "RS102" },
+  { "_id": "A203", "title": "Heating Analysis", "course": "RS102" },
+
+  { "_id": "A301", "title": "Structural Design Task", "course": "RS103" },
+  { "_id": "A302", "title": "Orbital Calculations", "course": "RS103" },
+  { "_id": "A303", "title": "Systems Engineering Exam", "course": "RS103" },
+
+  {
+    "_id": "A401",
+    "title": "Molecular Structures Worksheet",
+    "course": "RS104"
+  },
+  { "_id": "A402", "title": "Functional Groups Practice", "course": "RS104" },
+  { "_id": "A403", "title": "Reaction Mechanism Report", "course": "RS104" },
+
+  { "_id": "A501", "title": "Periodic Table Analysis", "course": "RS105" },
+  {
+    "_id": "A502",
+    "title": "Coordination Compound Worksheet",
+    "course": "RS105"
+  },
+  { "_id": "A503", "title": "Crystal Field Theory Quiz", "course": "RS105" },
+
+  { "_id": "A601", "title": "Thermodynamics Problem Set", "course": "RS106" },
+  { "_id": "A602", "title": "Reaction Rate Lab", "course": "RS106" },
+  { "_id": "A603", "title": "Quantum Chemistry Report", "course": "RS106" },
+
+  { "_id": "A701", "title": "Elvish Script Practice", "course": "RS107" },
+  { "_id": "A702", "title": "Translation Exercise", "course": "RS107" },
+  { "_id": "A703", "title": "Cultural Context Essay", "course": "RS107" },
+
+  { "_id": "A801", "title": "History of Alliances Essay", "course": "RS108" },
+  { "_id": "A802", "title": "Political Systems Comparison", "course": "RS108" },
+  { "_id": "A803", "title": "Wizard Diplomacy Case Study", "course": "RS108" }
+]
