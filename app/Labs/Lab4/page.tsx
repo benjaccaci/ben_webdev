@@ -13,8 +13,6 @@ import React from "react";
 import ReduxExamples from "./ReduxExamples/page";
 import store from "./store";
 import { Provider } from "react-redux";
-import HelloRedux from "./ReduxExamples/HelloRedux/page";
-import CounterRedux from "./ReduxExamples/CounterRedux/page";
 import EventObject from "./EventObject";
 
 export default function Lab4() {
@@ -37,8 +35,6 @@ export default function Lab4() {
         <ArrayStateVariable />
         <ParentStateComponent />
         <ReduxExamples />
-        <HelloRedux />
-        <CounterRedux />
       </div>
     </Provider>
   );
