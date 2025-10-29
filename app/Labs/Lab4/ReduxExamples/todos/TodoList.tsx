@@ -1,5 +1,6 @@
 /* eslint-disable react/jsx-key */
 /* eslint-disable @typescript-eslint/no-explicit-any */
+"use client";
 import { useState } from "react";
 import { Button, FormControl, ListGroup, ListGroupItem } from "react-bootstrap";
 import TodoForm from "./TodoForm";
