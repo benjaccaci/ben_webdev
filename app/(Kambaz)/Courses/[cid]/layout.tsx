@@ -1,27 +1,32 @@
-import { ReactNode } from "react";
+/* eslint-disable react-hooks/rules-of-hooks */
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @next/next/no-async-client-component */
+"use client";
+import { ReactNode, useState } from "react";
 import CourseNavigation from "./navigation";
+import { useSelector } from "react-redux";
+import { useParams } from "next/navigation";
+import { FaAlignJustify } from "react-icons/fa6";
 import Breadcrumb from "./Breadcrumb";
-import { FaAlignJustify } from "react-icons/fa";
-import { courses } from "../../Database";
-
-export default async function CoursesLayout({
-  children,
-  params,
-}: Readonly<{ children: ReactNode; params: Promise<{ cid: string }> }>) {
-  const { cid } = await params;
-  const course = courses.find((course) => course._id === cid);
-
+export default function CoursesLayout({ children }: { children: ReactNode }) {
+  const { cid } = useParams();
+  const { courses } = useSelector((state: any) => state.coursesReducer);
+  const course = courses.find((course: any) => course._id === cid);
+  const [navVisible, setNavVisible] = useState(true);
+  const toggleNav = () => setNavVisible((prev) => !prev);
   return (
     <div id="wd-courses">
-      <h2 className="text-danger">
-        <FaAlignJustify className="me-4 fs-4 mb-1" />
+      <h2>
+        <FaAlignJustify className="me-4 fs-4 mb-1" onClick={toggleNav} />
         <Breadcrumb course={course} />
       </h2>
       <hr />
       <div className="d-flex">
-        <div className="d-none d-sm-block">
-          <CourseNavigation />
-        </div>
+        {navVisible && (
+          <div className="me-3">
+            <CourseNavigation />
+          </div>
+        )}
         <div className="flex-fill">{children}</div>
       </div>
     </div>
