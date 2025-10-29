@@ -10,7 +10,7 @@ import ObjectStateVariable from "./ObjectStateVariable";
 import ArrayStateVariable from "./ArrayStateVariable";
 import ParentStateComponent from "./ParentStateComponent";
 import React from "react";
-import ReduxExamples from "./ReduxExamples/page";
+import ReduxExamples from "./ReduxExamples/ReduxExamples";
 import store from "./store";
 import { Provider } from "react-redux";
 import EventObject from "./EventObject";
