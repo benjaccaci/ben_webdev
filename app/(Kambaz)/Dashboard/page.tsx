@@ -22,8 +22,11 @@ import {
   Button,
   FormControl,
 } from "react-bootstrap";
+import * as db from "../Database";
 
 export default function Dashboard() {
+  const { currentUser } = useSelector((state: any) => state.accountReducer);
+  const { enrollments } = db;
   const { courses } = useSelector((state: any) => state.coursesReducer);
   const dispatch = useDispatch();
   const [course, setCourse] = useState<any>({
@@ -35,24 +38,6 @@ export default function Dashboard() {
     image: "/images/reactjsicon.jpg",
     description: "New Description",
   });
-  // const addNewCourse = () => {
-  //   const newCourse = { ...course, _id: uuidv4() };
-  //   setCourses([...courses, newCourse]);
-  // };
-  // const deleteCourse = (courseId: string) => {
-  //   setCourses(courses.filter((course) => course._id !== courseId));
-  // };
-  // const updateCourse = () => {
-  //   setCourses(
-  //     courses.map((c) => {
-  //       if (c._id === course._id) {
-  //         return course;
-  //       } else {
-  //         return c;
-  //       }
-  //     })
-  //   );
-  // };
 
   return (
     <div id="wd-dashboard">
@@ -89,71 +74,89 @@ export default function Dashboard() {
       />
       <hr />
       <h2 id="wd-dashboard-published">
-        Published Courses ({courses.length})
+        Published Courses (
+        {
+          courses.filter((course: { _id: string }) =>
+            enrollments.some(
+              (enrollment) =>
+                enrollment.user === currentUser?._id &&
+                enrollment.course === course._id
+            )
+          ).length
+        }
+        )
       </h2>{" "}
       <hr />
       <div id="wd-dashboard-courses">
         <Row xs={1} md={5} className="g-4">
-          {courses.map(
-            (course: { _id: number; name: string; description: string }) => (
-              <Col
-                key={course._id}
-                className="wd-dashboard-course"
-                style={{ width: "300px" }}
-              >
-                <Card>
-                  <Link
-                    href={`/Courses/${course._id}/Home`}
-                    className="wd-dashboard-course-link
-                  text-decoration-none text-dark"
-                  >
-                    <CardImg
-                      src="/images/reactjsicon.jpg"
-                      variant="top"
-                      width="100%"
-                      height={160}
-                    />
-                    <CardBody className="card-body">
-                      <CardTitle
-                        className="wd-dashboard-course-title
-                        text-nowrap overflow-hidden"
-                      >
-                        {course.name}{" "}
-                      </CardTitle>
-                      <CardText
-                        className="wd-dashboard-course-description
-                  overflow-hidden"
-                        style={{ height: "100px" }}
-                      >
-                        {course.description}{" "}
-                      </CardText>
-                      <Button variant="primary">Go </Button>
-                      <button
-                        onClick={(event) => {
-                          event.preventDefault();
-                          dispatch(deleteCourse(course._id));
-                        }}
-                        className="btn btn-danger float-end"
-                        id="wd-delete-course-click"
-                      >
-                        Delete
-                      </button>
-                      <button
-                        id="wd-edit-course-click"
-                        onClick={(event) => {
-                          event.preventDefault();
-                          setCourse(course);
-                        }}
-                        className="btn btn-warning me-2 float-end"
-                      >
-                        Edit
-                      </button>
-                    </CardBody>
-                  </Link>
-                </Card>
-              </Col>
+          {courses
+            .filter((course: { _id: string }) =>
+              enrollments.some(
+                (enrollment) =>
+                  enrollment.user === currentUser?._id &&
+                  enrollment.course === course._id
+              )
             )
-          )}
+            .map(
+              (course: { _id: number; name: string; description: string }) => (
+                <Col
+                  key={course._id}
+                  className="wd-dashboard-course"
+                  style={{ width: "300px" }}
+                >
+                  <Card>
+                    <Link
+                      href={`/Courses/${course._id}/Home`}
+                      className="wd-dashboard-course-link
+                  text-decoration-none text-dark"
+                    >
+                      <CardImg
+                        src="/images/reactjsicon.jpg"
+                        variant="top"
+                        width="100%"
+                        height={160}
+                      />
+                      <CardBody className="card-body">
+                        <CardTitle
+                          className="wd-dashboard-course-title
+                        text-nowrap overflow-hidden"
+                        >
+                          {course.name}{" "}
+                        </CardTitle>
+                        <CardText
+                          className="wd-dashboard-course-description
+                  overflow-hidden"
+                          style={{ height: "100px" }}
+                        >
+                          {course.description}{" "}
+                        </CardText>
+                        <Button variant="primary">Go </Button>
+                        <button
+                          onClick={(event) => {
+                            event.preventDefault();
+                            dispatch(deleteCourse(course._id));
+                          }}
+                          className="btn btn-danger float-end"
+                          id="wd-delete-course-click"
+                        >
+                          Delete
+                        </button>
+                        <button
+                          id="wd-edit-course-click"
+                          onClick={(event) => {
+                            event.preventDefault();
+                            setCourse(course);
+                          }}
+                          className="btn btn-warning me-2 float-end"
+                        >
+                          Edit
+                        </button>
+                      </CardBody>
+                    </Link>
+                  </Card>
+                </Col>
+              )
+            )}
         </Row>
       </div>
     </div>

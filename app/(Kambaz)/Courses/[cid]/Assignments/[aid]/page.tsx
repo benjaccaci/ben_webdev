@@ -3,15 +3,70 @@
 
 import "bootstrap/dist/css/bootstrap.min.css";
 import { Form, Row, Col, Card, Button, InputGroup } from "react-bootstrap";
-import { useParams } from "next/navigation";
-import Link from "next/link";
-import * as db from "../../../../Database";
+import { useParams, useRouter } from "next/navigation";
+import { useState } from "react";
+import { useSelector, useDispatch } from "react-redux";
+import { addAssignment, updateAssignment } from "../reducer";
 
 export default function AssignmentEditor() {
   const { cid, aid } = useParams();
-  const assignment = db.assignments.find((a: any) => a._id === aid);
+  const router = useRouter();
+  const dispatch = useDispatch();
+  const { assignments } = useSelector((state: any) => state.assignmentsReducer);
 
-  if (!assignment) {
+  const isNew = aid === "new";
+  const existingAssignment = isNew
+    ? null
+    : assignments.find((a: any) => a._id === aid);
+
+  const [title, setTitle] = useState(existingAssignment?.title || "");
+  const [description, setDescription] = useState(
+    existingAssignment?.description ||
+      "The assignment is available online. Submit a link to the landing page of your project."
+  );
+  const [points, setPoints] = useState(existingAssignment?.points || 100);
+  const [dueDate, setDueDate] = useState(
+    existingAssignment?.dueDate || "2024-05-13"
+  );
+  const [availableFromDate, setAvailableFromDate] = useState(
+    existingAssignment?.availableFromDate || "2024-05-06"
+  );
+  const [availableUntilDate, setAvailableUntilDate] = useState(
+    existingAssignment?.availableUntilDate || "2024-05-20"
+  );
+
+  const handleSave = () => {
+    if (isNew) {
+      const newAssignmentData = {
+        title,
+        description,
+        points: Number(points),
+        dueDate,
+        availableFromDate,
+        availableUntilDate,
+        course: cid,
+      };
+      dispatch(addAssignment(newAssignmentData));
+    } else {
+      const updatedAssignmentData = {
+        ...existingAssignment,
+        title,
+        description,
+        points: Number(points),
+        dueDate,
+        availableFromDate,
+        availableUntilDate,
+      };
+      dispatch(updateAssignment(updatedAssignmentData));
+    }
+    router.push(`/Courses/${cid}/Assignments`);
+  };
+
+  const handleCancel = () => {
+    router.push(`/Courses/${cid}/Assignments`);
+  };
+
+  if (!isNew && !existingAssignment) {
     return <div className="container py-3">Assignment not found</div>;
   }
 
@@ -25,7 +80,8 @@ export default function AssignmentEditor() {
           <Col sm={9}>
             <Form.Control
               id="wd-name"
-              defaultValue={assignment.title}
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
               placeholder="Assignment name"
             />
           </Col>
@@ -47,7 +103,8 @@ export default function AssignmentEditor() {
                   as="textarea"
                   rows={6}
                   id="wd-description"
-                  defaultValue="The assignment is available online. Submit a link to the landing page of your project."
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
                 />
               </Card.Body>
             </Card>
@@ -59,7 +116,12 @@ export default function AssignmentEditor() {
             Points
           </Form.Label>
           <Col sm={4} md={3}>
-            <Form.Control id="wd-points" type="number" defaultValue="100" />
+            <Form.Control
+              id="wd-points"
+              type="number"
+              value={points}
+              onChange={(e) => setPoints(e.target.value)}
+            />
           </Col>
         </Row>
 
@@ -158,7 +220,8 @@ export default function AssignmentEditor() {
             <Form.Control
               type="date"
               id="wd-due-date"
-              defaultValue="2024-05-13"
+              value={dueDate}
+              onChange={(e) => setDueDate(e.target.value)}
             />
           </Col>
         </Row>
@@ -176,7 +239,8 @@ export default function AssignmentEditor() {
             <Form.Control
               type="date"
               id="wd-available-from"
-              defaultValue="2024-05-06"
+              value={availableFromDate}
+              onChange={(e) => setAvailableFromDate(e.target.value)}
             />
           </Col>
         </Row>
@@ -194,7 +258,8 @@ export default function AssignmentEditor() {
             <Form.Control
               type="date"
               id="wd-available-until"
-              defaultValue="2024-05-20"
+              value={availableUntilDate}
+              onChange={(e) => setAvailableUntilDate(e.target.value)}
             />
           </Col>
         </Row>
@@ -204,12 +269,12 @@ export default function AssignmentEditor() {
             sm={{ span: 9, offset: 3 }}
             className="d-flex gap-2 justify-content-end"
           >
-            <Link href={`/Courses/${cid}/Assignments`}>
-              <Button variant="secondary">Cancel</Button>
-            </Link>
-            <Link href={`/Courses/${cid}/Assignments`}>
-              <Button variant="danger">Save</Button>
-            </Link>
+            <Button variant="secondary" onClick={handleCancel}>
+              Cancel
+            </Button>
+            <Button variant="danger" onClick={handleSave}>
+              Save
+            </Button>
           </Col>
         </Row>
       </Form>
