@@ -7,15 +7,18 @@ import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { addAssignment, updateAssignment } from "../reducer";
+import { RootState } from "../../../../store";
 
 export default function AssignmentEditor() {
   const { cid, aid } = useParams();
   const router = useRouter();
   const dispatch = useDispatch();
-  const { assignments } = useSelector((state: any) => state.assignmentsReducer);
+  const { assignments } = useSelector(
+    (state: RootState) => state.assignmentsReducer
+  );
 
   const isNew = aid === "new";
-  const existingAssignment = isNew
+  const existingAssignment: any = isNew
     ? null
     : assignments.find((a: any) => a._id === aid);
 
