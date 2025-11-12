@@ -10,7 +10,7 @@ export default function Breadcrumb({
   const pathname = usePathname();
   return (
     <span>
-      Course {course?.name} &gt; {pathname.split("/").pop()}
+      {course?.name} &gt; {pathname.split("/").pop()}
     </span>
   );
 }

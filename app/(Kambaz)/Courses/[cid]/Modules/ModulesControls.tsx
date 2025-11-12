@@ -1,5 +1,5 @@
 "use client";
-
+import ModuleEditor from "./ModuleEditor";
 import { FaPlus } from "react-icons/fa";
 import GreenCheckmark from "./GreenCheckmark";
 import {
@@ -10,19 +10,36 @@ import {
   DropdownToggle,
 } from "react-bootstrap";
 import { GoCircleSlash } from "react-icons/go";
-export default function ModulesControls() {
+import { useState } from "react";
+export default function ModulesControls({
+  moduleName,
+  setModuleName,
+  addModule,
+}: {
+  moduleName: string;
+  setModuleName: (title: string) => void;
+  addModule: () => void;
+}) {
+  const [show, setShow] = useState(false);
+  const handleClose = () => setShow(false);
+  const handleShow = () => setShow(true);
+
   return (
-    <div id="wd-modules-controls" className="text-nowrap">
+    <div
+      id="wd-modules-controls"
+      className="d-flex justify-content-end align-items-center flex-wrap gap-2 mb-3"
+    >
       <Button
         variant="danger"
+        onClick={handleShow}
         size="lg"
-        className="me-1 float-end"
+        className="me-1"
         id="wd-add-module-btn"
       >
         <FaPlus className="position-relative me-2" style={{ bottom: "1px" }} />
         Module
       </Button>
-      <Dropdown className="float-end me-2">
+      <Dropdown className="me-2">
         <DropdownToggle variant="secondary" size="lg" id="wd-publish-all-btn">
           <GreenCheckmark /> Publish All
         </DropdownToggle>
@@ -47,7 +64,7 @@ export default function ModulesControls() {
       <Button
         variant="secondary"
         size="lg"
-        className="me-1 float-end"
+        className="me-1"
         id="wd-view-progress"
       >
         View Progress
@@ -55,11 +72,19 @@ export default function ModulesControls() {
       <Button
         variant="secondary"
         size="lg"
-        className="me-1 float-end"
+        className="me-1"
         id="wd-collapse-all"
       >
         Collapse All
       </Button>
+      <ModuleEditor
+        show={show}
+        handleClose={handleClose}
+        dialogTitle="Add Module"
+        moduleName={moduleName}
+        setModuleName={setModuleName}
+        addModule={addModule}
+      />
     </div>
   );
 }

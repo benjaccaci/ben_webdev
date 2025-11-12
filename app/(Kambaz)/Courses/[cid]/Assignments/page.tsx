@@ -4,15 +4,29 @@
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { Button, Form, InputGroup, ListGroup } from "react-bootstrap";
-import { FaSearch, FaPlus, FaCheckCircle } from "react-icons/fa";
+import { FaSearch, FaPlus, FaCheckCircle, FaTrash } from "react-icons/fa";
 import { FaBook } from "react-icons/fa6";
 import { IoEllipsisVertical } from "react-icons/io5";
 import { VscTriangleDown } from "react-icons/vsc";
-import * as db from "../../../Database";
+import { useSelector, useDispatch } from "react-redux";
+import { deleteAssignment } from "./reducer";
+import { RootState } from "../../../store";
 
 export default function Assignments() {
   const { cid } = useParams();
-  const assignments = db.assignments;
+  const dispatch = useDispatch();
+  const { assignments } = useSelector(
+    (state: RootState) => state.assignmentsReducer
+  );
+
+  const handleDeleteClick = (assignment: any) => {
+    const confirmed = confirm(
+      `Are you sure you want to remove the assignment "${assignment.title}"?`
+    );
+    if (confirmed) {
+      dispatch(deleteAssignment(assignment._id));
+    }
+  };
 
   return (
     <div id="wd-assignments" className="p-3">
@@ -34,10 +48,12 @@ export default function Assignments() {
             <FaPlus className="me-2" />
             Group
           </Button>
-          <Button variant="danger" size="lg" id="wd-add-assignment">
-            <FaPlus className="me-2" />
-            Assignment
-          </Button>
+          <Link href={`/Courses/${cid}/Assignments/new`}>
+            <Button variant="danger" size="lg" id="wd-add-assignment">
+              <FaPlus className="me-2" />
+              Assignment
+            </Button>
+          </Link>
         </div>
       </div>
 
@@ -80,11 +96,18 @@ export default function Assignments() {
                   <span className="text-danger">
                     <b>Multiple Modules</b>
                   </span>{" "}
-                  | <b>Not available until</b> May 6 at 12:00am
+                  | <b>Not available until</b>{" "}
+                  {assignment.availableUntilDate || "May 6 at 12:00am"}
                   <br />
-                  <b>Due</b> May 13 at 11:59pm | 100 pts
+                  <b>Due</b> {assignment.dueDate || "May 13 at 11:59pm"} |{" "}
+                  {assignment.points || 100} pts
                 </div>
               </div>
+              <FaTrash
+                className="text-danger fs-5 align-self-center ms-3"
+                style={{ cursor: "pointer" }}
+                onClick={() => handleDeleteClick(assignment)}
+              />
               <FaCheckCircle className="text-success fs-4 align-self-center ms-3" />
               <IoEllipsisVertical className="fs-4 align-self-center ms-3" />
             </ListGroup.Item>

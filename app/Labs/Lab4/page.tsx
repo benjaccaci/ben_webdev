@@ -9,25 +9,33 @@ import DateStateVariable from "./DateStateVariable";
 import ObjectStateVariable from "./ObjectStateVariable";
 import ArrayStateVariable from "./ArrayStateVariable";
 import ParentStateComponent from "./ParentStateComponent";
+import React from "react";
+import ReduxExamples from "./ReduxExamples";
+import store from "./store";
+import { Provider } from "react-redux";
+import EventObject from "./EventObject";
 
 export default function Lab4() {
   function sayHello() {
     alert("Hello");
   }
-
   return (
-    <div id="wd-passing-functions">
-      <h3>Lab 4</h3>
-      <HandlingClickEvent />
-      <PassingDataOnEvent />
-      <PassingFunctions someFunction={sayHello} />
-      <Counter />
-      <BooleanStateVariables />
-      <StringStateVariables />
-      <DateStateVariable />
-      <ObjectStateVariable />
-      <ArrayStateVariable />
-      <ParentStateComponent />
-    </div>
+    <Provider store={store}>
+      <div id="wd-passing-functions">
+        <h3>Lab 4</h3>
+        <HandlingClickEvent />
+        <PassingDataOnEvent />
+        <PassingFunctions someFunction={sayHello} />
+        <EventObject />
+        <Counter />
+        <BooleanStateVariables />
+        <StringStateVariables />
+        <DateStateVariable />
+        <ObjectStateVariable />
+        <ArrayStateVariable />
+        <ParentStateComponent />
+        <ReduxExamples />
+      </div>
+    </Provider>
   );
 }
