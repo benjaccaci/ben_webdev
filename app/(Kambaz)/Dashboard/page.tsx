@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 import {
@@ -6,11 +7,17 @@ import {
   ReactElement,
   ReactNode,
   ReactPortal,
+  useEffect,
   useState,
 } from "react";
 import Link from "next/link";
 import { useDispatch, useSelector } from "react-redux";
-import { addNewCourse, deleteCourse, updateCourse } from "../Courses/reducer";
+import {
+  addNewCourse,
+  deleteCourse,
+  updateCourse,
+  setCourses,
+} from "../Courses/reducer";
 import {
   Row,
   Col,
@@ -22,14 +29,13 @@ import {
   Button,
   FormControl,
 } from "react-bootstrap";
-import * as db from "../Database";
+import * as client from "../Courses/client";
 import { RootState } from "../store";
 
 export default function Dashboard() {
   const { currentUser } = useSelector(
     (state: RootState) => state.accountReducer
   );
-  const { enrollments } = db;
   const { courses } = useSelector((state: RootState) => state.coursesReducer);
   const dispatch = useDispatch();
   const [course, setCourse] = useState<any>({
@@ -41,7 +47,40 @@ export default function Dashboard() {
     image: "/images/reactjsicon.jpg",
     description: "New Description",
   });
+  const fetchCourses = async () => {
+    try {
+      const courses = await client.findMyCourses();
+      dispatch(setCourses(courses));
+    } catch (error) {
+      console.error(error);
+    }
+  };
+  useEffect(() => {
+    fetchCourses();
+  }, [currentUser]);
 
+  const onAddNewCourse = async () => {
+    const newCourse = await client.createCourse(course);
+    dispatch(setCourses([...courses, newCourse]));
+  };
+  const onDeleteCourse = async (courseId: string) => {
+    const status = await client.deleteCourse(courseId);
+    dispatch(setCourses(courses.filter((course) => course._id !== courseId)));
+  };
+  const onUpdateCourse = async () => {
+    await client.updateCourse(course);
+    dispatch(
+      setCourses(
+        courses.map((c) => {
+          if (c._id === course._id) {
+            return course;
+          } else {
+            return c;
+          }
+        })
+      )
+    );
+  };
   return (
     <div id="wd-dashboard">
       <h1 id="wd-dashboard-title">Dashboard</h1> <hr />
@@ -50,7 +89,7 @@ export default function Dashboard() {
         <button
           className="btn btn-primary float-end"
           id="wd-add-new-course-click"
-          onClick={() => dispatch(addNewCourse(course))}
+          onClick={onAddNewCourse}
         >
           {" "}
           Add{" "}
@@ -58,7 +97,7 @@ export default function Dashboard() {
         <button
           className="btn btn-warning float-end me-2"
           id="wd-update-course-click"
-          onClick={() => dispatch(updateCourse(course))}
+          onClick={onUpdateCourse}
         >
           Update{" "}
         </button>
@@ -77,87 +116,69 @@ export default function Dashboard() {
       />
       <hr />
       <h2 id="wd-dashboard-published">
-        Published Courses (
-        {
-          courses.filter((course: { _id: string }) =>
-            enrollments.some(
-              (enrollment) =>
-                enrollment.user === (currentUser as any)?._id &&
-                enrollment.course === course._id
-            )
-          ).length
-        }
-        )
+        Published Courses ({courses.length})
       </h2>{" "}
       <hr />
       <div id="wd-dashboard-courses">
         <Row xs={1} md={5} className="g-4">
-          {courses
-            .filter((course: { _id: string }) =>
-              enrollments.some(
-                (enrollment) =>
-                  enrollment.user === (currentUser as any)?._id &&
-                  enrollment.course === course._id
-              )
-            )
-            .map((course: any) => (
-              <Col
-                key={course._id}
-                className="wd-dashboard-course"
-                style={{ width: "300px" }}
-              >
-                <Card>
-                  <Link
-                    href={`/Courses/${course._id}/Home`}
-                    className="wd-dashboard-course-link
+          {courses.map((course: any) => (
+            <Col
+              key={course._id}
+              className="wd-dashboard-course"
+              style={{ width: "300px" }}
+            >
+              <Card>
+                <Link
+                  href={`/Courses/${course._id}/Home`}
+                  className="wd-dashboard-course-link
                   text-decoration-none text-dark"
-                  >
-                    <CardImg
-                      src="/images/reactjsicon.jpg"
-                      variant="top"
-                      width="100%"
-                      height={160}
-                    />
-                    <CardBody className="card-body">
-                      <CardTitle
-                        className="wd-dashboard-course-title
+                >
+                  <CardImg
+                    src="/images/reactjsicon.jpg"
+                    variant="top"
+                    width="100%"
+                    height={160}
+                  />
+                  <CardBody className="card-body">
+                    <CardTitle
+                      className="wd-dashboard-course-title
                         text-nowrap overflow-hidden"
-                      >
-                        {course.name}{" "}
-                      </CardTitle>
-                      <CardText
-                        className="wd-dashboard-course-description
+                    >
+                      {course.name}{" "}
+                    </CardTitle>
+                    <CardText
+                      className="wd-dashboard-course-description
                   overflow-hidden"
-                        style={{ height: "100px" }}
-                      >
-                        {course.description}{" "}
-                      </CardText>
-                      <Button variant="primary">Go </Button>
-                      <button
-                        onClick={(event) => {
-                          event.preventDefault();
-                          dispatch(deleteCourse(course._id));
-                        }}
-                        className="btn btn-danger float-end"
-                        id="wd-delete-course-click"
-                      >
-                        Delete
-                      </button>
-                      <button
-                        id="wd-edit-course-click"
-                        onClick={(event) => {
-                          event.preventDefault();
-                          setCourse(course);
-                        }}
-                        className="btn btn-warning me-2 float-end"
-                      >
-                        Edit
-                      </button>
-                    </CardBody>
-                  </Link>
-                </Card>
-              </Col>
-            ))}
+                      style={{ height: "100px" }}
+                    >
+                      {course.description}{" "}
+                    </CardText>
+                    <Button variant="primary">Go </Button>
+                    <button
+                      onClick={(event) => {
+                        event.preventDefault();
+                        onDeleteCourse(course._id);
+                      }}
+                      className="btn btn-danger float-end"
+                      id="wd-delete-course-click"
+                    >
+                      Delete
+                    </button>
+                    <button
+                      id="wd-edit-course-click"
+                      onClick={(event) => {
+                        event.preventDefault();
+                        setCourse(course);
+                      }}
+                      className="btn btn-warning me-2 float-end"
+                    >
+                      Edit
+                    </button>
+                  </CardBody>
+                </Link>
+              </Card>
+            </Col>
+          ))}
         </Row>
       </div>
     </div>
