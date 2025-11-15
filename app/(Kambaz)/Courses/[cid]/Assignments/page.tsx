@@ -9,8 +9,10 @@ import { FaBook } from "react-icons/fa6";
 import { IoEllipsisVertical } from "react-icons/io5";
 import { VscTriangleDown } from "react-icons/vsc";
 import { useSelector, useDispatch } from "react-redux";
-import { deleteAssignment } from "./reducer";
+import { setAssignments, deleteAssignment } from "./reducer";
 import { RootState } from "../../../store";
+import { useEffect } from "react";
+import * as client from "../../client";
 
 export default function Assignments() {
   const { cid } = useParams();
@@ -19,12 +21,24 @@ export default function Assignments() {
     (state: RootState) => state.assignmentsReducer
   );
 
-  const handleDeleteClick = (assignment: any) => {
+  const fetchAssignments = async () => {
+    const assignments = await client.findAssignmentsForCourse(cid as string);
+    dispatch(setAssignments(assignments));
+  };
+
+  useEffect(() => {
+    fetchAssignments();
+  }, []);
+
+  const handleDeleteClick = async (assignment: any) => {
     const confirmed = confirm(
       `Are you sure you want to remove the assignment "${assignment.title}"?`
     );
     if (confirmed) {
-      dispatch(deleteAssignment(assignment._id));
+      await client.deleteAssignment(assignment._id);
+      dispatch(
+        setAssignments(assignments.filter((a: any) => a._id !== assignment._id))
+      );
     }
   };
 

@@ -4,10 +4,11 @@
 import "bootstrap/dist/css/bootstrap.min.css";
 import { Form, Row, Col, Card, Button, InputGroup } from "react-bootstrap";
 import { useParams, useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import { addAssignment, updateAssignment } from "../reducer";
+import { setAssignments } from "../reducer";
 import { RootState } from "../../../../store";
+import * as client from "../../../client";
 
 export default function AssignmentEditor() {
   const { cid, aid } = useParams();
@@ -38,7 +39,7 @@ export default function AssignmentEditor() {
     existingAssignment?.availableUntilDate || "2024-05-20"
   );
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (isNew) {
       const newAssignmentData = {
         title,
@@ -49,7 +50,11 @@ export default function AssignmentEditor() {
         availableUntilDate,
         course: cid,
       };
-      dispatch(addAssignment(newAssignmentData));
+      const newAssignment = await client.createAssignmentForCourse(
+        cid as string,
+        newAssignmentData
+      );
+      dispatch(setAssignments([...assignments, newAssignment]));
     } else {
       const updatedAssignmentData = {
         ...existingAssignment,
@@ -60,7 +65,14 @@ export default function AssignmentEditor() {
         availableFromDate,
         availableUntilDate,
       };
-      dispatch(updateAssignment(updatedAssignmentData));
+      await client.updateAssignment(updatedAssignmentData);
+      dispatch(
+        setAssignments(
+          assignments.map((a: any) =>
+            a._id === updatedAssignmentData._id ? updatedAssignmentData : a
+          )
+        )
+      );
     }
     router.push(`/Courses/${cid}/Assignments`);
   };
