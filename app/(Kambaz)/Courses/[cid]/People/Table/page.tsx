@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-expressions */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 import { useParams } from "next/navigation";
@@ -23,12 +24,13 @@ export default function PeopleTable(props?: PeopleTableProps) {
   const params = useParams();
   const courseId = params.cid;
 
+  const fetchUsers = async () => {
+    if (!courseId) return;
+    const enrolledUsers = await client.findUsersInCourse(courseId as string);
+    setUsers(enrolledUsers);
+  };
+
   useEffect(() => {
-    const fetchUsers = async () => {
-      if (!courseId) return;
-      const enrolledUsers = await client.findUsersInCourse(courseId as string);
-      setUsers(enrolledUsers);
-    };
     fetchUsers();
   }, [courseId]);
 
@@ -81,6 +83,12 @@ export default function PeopleTable(props?: PeopleTableProps) {
           uid={showUserId}
           onClose={() => {
             setShowDetails(false);
+            fetchUsers();
+            propFetchUsers && propFetchUsers();
+          }}
+          onSave={() => {
+            setShowDetails(false);
+            fetchUsers();
             propFetchUsers && propFetchUsers();
           }}
         />
