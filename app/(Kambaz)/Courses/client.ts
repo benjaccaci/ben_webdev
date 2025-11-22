@@ -88,3 +88,7 @@ export const updateAssignment = async (assignment: any) => {
   );
   return data;
 };
+export const findUsersInCourse = async (courseId: string) => {
+  const response = await axios.get(`${COURSES_API}/${courseId}/enrollments`);
+  return response.data;
+};
