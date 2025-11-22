@@ -15,24 +15,27 @@ interface PeopleTableProps {
 }
 
 export default function PeopleTable(props?: PeopleTableProps) {
-  const propUsers = props?.users;
-  const propFetchUsers = props?.fetchUsers;
-
-  const [showDetails, setShowDetails] = useState(false);
-  const [showUserId, setShowUserId] = useState<string | null>(null);
-  const [users, setUsers] = useState<any[]>([]);
+  const { users: propUsers, fetchUsers: propFetchUsers } = props || {};
   const params = useParams();
   const courseId = params.cid;
 
-  const fetchUsers = async () => {
-    if (!courseId) return;
-    const enrolledUsers = await client.findUsersInCourse(courseId as string);
-    setUsers(enrolledUsers);
-  };
+  const [users, setUsers] = useState<any[]>(propUsers ?? []);
+  const [showDetails, setShowDetails] = useState(false);
+  const [showUserId, setShowUserId] = useState<string | null>(null);
 
   useEffect(() => {
-    fetchUsers();
-  }, [courseId]);
+    if (propUsers) {
+      setUsers(propUsers);
+      return;
+    }
+
+    const fetchCourseUsers = async () => {
+      if (!courseId) return;
+      const enrolledUsers = await client.findUsersInCourse(courseId as string);
+      setUsers(enrolledUsers);
+    };
+    fetchCourseUsers();
+  }, [propUsers, courseId]);
 
   return (
     <>
@@ -83,12 +86,10 @@ export default function PeopleTable(props?: PeopleTableProps) {
           uid={showUserId}
           onClose={() => {
             setShowDetails(false);
-            fetchUsers();
             propFetchUsers && propFetchUsers();
           }}
           onSave={() => {
             setShowDetails(false);
-            fetchUsers();
             propFetchUsers && propFetchUsers();
           }}
         />
