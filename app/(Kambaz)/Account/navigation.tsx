@@ -8,16 +8,24 @@ import { RootState } from "../store";
 export default function AccountNavigation() {
   const { currentUser } = useSelector(
     (state: RootState) => state.accountReducer
-  );
-  const links = currentUser ? ["Profile"] : ["Signin", "Signup"];
+  ) as {
+    currentUser: { role: string } | null;
+  };
+
+  if (!currentUser) return null;
+
+  // eslint-disable-next-line react-hooks/rules-of-hooks
   const pathname = usePathname();
+  const links =
+    currentUser.role === "ADMIN" ? ["Profile", "Users"] : ["Signin", "Signup"];
+
   return (
     <Nav variant="pills" className="flex-column">
       {links.map((link) => (
         <NavItem key={link}>
           <NavLink
             as={Link}
-            href={link}
+            href={`/Account/${link}`}
             active={pathname.endsWith(link.toLowerCase())}
           >
             {link}
