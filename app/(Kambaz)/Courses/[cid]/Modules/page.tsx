@@ -23,6 +23,7 @@ export default function Modules() {
   const [moduleName, setModuleName] = useState("");
   const { modules } = useSelector((state: RootState) => state.modulesReducer);
   const dispatch = useDispatch();
+
   const fetchModules = async () => {
     const modules = await client.findModulesForCourse(cid as string);
     dispatch(setModules(modules));
@@ -30,17 +31,20 @@ export default function Modules() {
   useEffect(() => {
     fetchModules();
   }, []);
+
   const onCreateModuleForCourse = async () => {
     if (!cid || Array.isArray(cid)) return;
     const newModule = { name: moduleName, course: cid };
     const module = await client.createModuleForCourse(cid, newModule);
     dispatch(setModules([...modules, module]));
   };
+
   const onRemoveModule = async (moduleId: string) => {
     if (!cid || Array.isArray(cid)) return;
     await client.deleteModule(cid, moduleId);
     dispatch(setModules(modules.filter((m: any) => m._id !== moduleId)));
   };
+
   const onUpdateModule = async (module: any) => {
     if (!cid || Array.isArray(cid)) return;
     await client.updateModule(cid, module);

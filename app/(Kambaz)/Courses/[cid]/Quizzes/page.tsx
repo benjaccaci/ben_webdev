@@ -1,6 +1,7 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Button, Dropdown, Form, InputGroup, ListGroup } from "react-bootstrap";
 import {
   FaArrowDown,
@@ -15,38 +16,58 @@ import {
 import { FaRocket } from "react-icons/fa6";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { quizzes } from "./data";
+import { useDispatch, useSelector } from "react-redux";
+import { RootState } from "../../../store";
+import { setQuizzes, deleteQuiz, updateQuiz } from "./reducer";
+import * as client from "../../client";
 
 export default function Quizzes() {
-  const [search, setSearch] = useState("");
-  const [quizList, setQuizList] = useState(quizzes);
   const { cid } = useParams();
-
-  const togglePublish = (id: string) => {
-    setQuizList((prev) =>
-      prev.map((quiz) =>
-        quiz.id === id
-          ? {
-              ...quiz,
-              status: quiz.status === "Published" ? "Unpublished" : "Published",
-            }
-          : quiz
-      )
-    );
+  const dispatch = useDispatch();
+  const quizzes = useSelector(
+    (state: RootState) => state.quizzesReducer.quizzes
+  );
+  const [search, setSearch] = useState("");
+  const fetchQuizzes = async () => {
+    const data = await client.findQuizzesForCourse(cid as string);
+    dispatch(setQuizzes(data));
   };
 
-  const deleteQuiz = (id: string) => {
-    const confirmed = window.confirm("Delete this quiz?");
-    if (!confirmed) return;
-    setQuizList((prev) => prev.filter((q) => q.id !== id));
-  };
+  useEffect(() => {
+    if (!cid) return;
+    fetchQuizzes();
+  }, [cid]);
 
   const formatDate = (date: Date) =>
-    date.toLocaleDateString("en-US", {
+    new Date(date).toLocaleDateString("en-US", {
       month: "short",
       day: "numeric",
       year: "numeric",
     });
+
+  const togglePublish = async (quiz: any) => {
+    const newStatus = quiz.status === "Published" ? "Unpublished" : "Published";
+    const updated = { ...quiz, status: newStatus };
+
+    await client.updateQuiz(updated);
+    dispatch(updateQuiz(updated));
+  };
+
+  const handleDelete = async (quizId: string) => {
+    const confirmed = window.confirm("Delete this quiz?");
+    if (!confirmed) return;
+
+    await client.deleteQuiz(quizId);
+    dispatch(deleteQuiz(quizId));
+  };
+
+  const sortedQuizzes = useMemo(() => {
+    return [...quizzes].sort(
+      (a, b) =>
+        new Date(a.availableFrom).getTime() -
+        new Date(b.availableFrom).getTime()
+    );
+  }, [quizzes]);
 
   return (
     <div className="p-3 d-flex flex-column gap-3" id="wd-quizzes-page">
@@ -109,9 +130,9 @@ export default function Quizzes() {
         </div>
 
         <ListGroup variant="flush">
-          {quizList.map((quiz) => (
+          {sortedQuizzes.map((quiz) => (
             <ListGroup.Item
-              key={quiz.id}
+              key={quiz._id}
               className="d-flex align-items-start gap-3 border-0 border-start border-5 border-success"
             >
               <FaRocket className="fs-5 text-secondary mt-1" />
@@ -119,7 +140,7 @@ export default function Quizzes() {
                 <div className="d-flex justify-content-between align-items-start">
                   <div>
                     <Link
-                      href={`/Courses/${cid}/Quizzes/${quiz.id}`}
+                      href={`/Courses/${cid}/Quizzes/${quiz._id}`}
                       className="fw-bold text-dark text-decoration-none"
                     >
                       {quiz.title}
@@ -155,14 +176,14 @@ export default function Quizzes() {
                 <Dropdown.Menu>
                   <Dropdown.Item
                     as={Link}
-                    href={`/Courses/${cid}/Quizzes/${quiz.id}`}
+                    href={`/Courses/${cid}/Quizzes/${quiz._id}`}
                   >
                     Edit
                   </Dropdown.Item>
-                  <Dropdown.Item onClick={() => deleteQuiz(quiz.id)}>
+                  <Dropdown.Item onClick={() => handleDelete(quiz._id)}>
                     Delete
                   </Dropdown.Item>
-                  <Dropdown.Item onClick={() => togglePublish(quiz.id)}>
+                  <Dropdown.Item onClick={() => togglePublish(quiz)}>
                     {quiz.status === "Published" ? "Unpublish" : "Publish"}
                   </Dropdown.Item>
                 </Dropdown.Menu>

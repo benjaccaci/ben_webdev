@@ -1,12 +1,28 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { useParams } from "next/navigation";
 import { Button, Table } from "react-bootstrap";
-import { quizzes } from "../data";
+import * as client from "../../../client";
+import { useState, useEffect } from "react";
+import { useDispatch } from "react-redux";
+import { updateQuiz } from "../reducer";
+import Link from "next/link";
 
 export default function QuizDetails() {
+  const { cid } = useParams();
   const { qid } = useParams();
-  const quiz = quizzes.find((item) => item.id === qid) || quizzes[0];
+  const dispatch = useDispatch();
+  const [quiz, setQuiz] = useState<any>({});
+
+  const fetchQuiz = async () => {
+    const data = await client.findQuizById(qid as string);
+    setQuiz({ ...data, id: data._id });
+  };
+
+  useEffect(() => {
+    fetchQuiz();
+  }, [qid]);
 
   const formatDate = (date: Date) =>
     date.toLocaleDateString("en-US", {
@@ -15,15 +31,37 @@ export default function QuizDetails() {
       year: "numeric",
     });
 
+  const formatBoolean = (value: boolean) => (value ? "Yes" : "No");
+
+  const togglePublish = async (quiz: any) => {
+    const newStatus = quiz.status === "Published" ? "Unpublished" : "Published";
+    const updated = { ...quiz, status: newStatus };
+
+    await client.updateQuiz(updated);
+    dispatch(updateQuiz(updated));
+    setQuiz(updated);
+  };
+
   return (
     <div id="wd-quiz-details" className="container py-3">
       <div className="d-flex justify-content-between align-items-center mb-4">
         <h2 className="m-0">{quiz.title}</h2>
         <div className="d-flex gap-2">
-          <Button variant="light" className="border">
-            Publish
+          <Button
+            variant="light"
+            className="border"
+            onClick={() => togglePublish(quiz)}
+          >
+            {quiz.status === "Published" ? "Unpublish" : "Publish"}
           </Button>
-          <Button variant="secondary">Edit</Button>
+          <Button variant="light" className="border">
+            <Link
+              href={`/Courses/${cid}/Quizzes/${quiz._id}/edit`}
+              className="text-black text-decoration-none"
+            >
+              Edit
+            </Link>
+          </Button>
         </div>
       </div>
 
@@ -32,7 +70,7 @@ export default function QuizDetails() {
           <tbody>
             <tr>
               <th className="pe-5 text-end">Quiz Type</th>
-              <td>Graded Quiz</td>
+              <td>{quiz.quizType}</td>
             </tr>
             <tr>
               <th className="pe-5 text-end">Points</th>
@@ -40,7 +78,7 @@ export default function QuizDetails() {
             </tr>
             <tr>
               <th className="pe-5 text-end">Assignment Group</th>
-              <td>QUIZZES</td>
+              <td>{quiz.assignmentGroup}</td>
             </tr>
             <tr>
               <th className="pe-5 text-end">Status</th>
@@ -48,7 +86,7 @@ export default function QuizDetails() {
             </tr>
             <tr>
               <th className="pe-5 text-end">Shuffle Answers</th>
-              <td>No</td>
+              <td>{formatBoolean(quiz.shuffleAnswers)}</td>
             </tr>
             <tr>
               <th className="pe-5 text-end">Time Limit</th>
@@ -56,7 +94,7 @@ export default function QuizDetails() {
             </tr>
             <tr>
               <th className="pe-5 text-end">Multiple Attempts</th>
-              <td>No</td>
+              <td>{formatBoolean(quiz.multipleAttempts)}</td>
             </tr>
             <tr>
               <th className="pe-5 text-end">View Responses</th>
@@ -64,25 +102,23 @@ export default function QuizDetails() {
             </tr>
             <tr>
               <th className="pe-5 text-end">Show Correct Answers</th>
-              <td>Immediately</td>
+              <td>{formatBoolean(quiz.showCorrectAnswers)}</td>
             </tr>
             <tr>
               <th className="pe-5 text-end">One Question at a Time</th>
-              <td>Yes</td>
+              <td>{formatBoolean(quiz.showOneQuestionAtATime)}</td>
             </tr>
             <tr>
-              <th className="pe-5 text-end">
-                Require Respondus LockDown Browser
-              </th>
+              <th className="pe-5 text-end">Require LockDown Browser</th>
               <td>No</td>
             </tr>
             <tr>
               <th className="pe-5 text-end">Webcam Required</th>
-              <td>No</td>
+              <td>{formatBoolean(quiz.webcamRequired)}</td>
             </tr>
             <tr>
               <th className="pe-5 text-end">Lock Questions After Answering</th>
-              <td>No</td>
+              <td>{formatBoolean(quiz.lockQuestionsAfterAnswering)}</td>
             </tr>
           </tbody>
         </Table>
