@@ -1,7 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { Badge, Button, Form, InputGroup, ListGroup } from "react-bootstrap";
+import { useState } from "react";
+import { Button, Dropdown, Form, InputGroup, ListGroup } from "react-bootstrap";
 import {
   FaArrowDown,
   FaBan,
@@ -19,7 +19,34 @@ import { quizzes } from "./data";
 
 export default function Quizzes() {
   const [search, setSearch] = useState("");
+  const [quizList, setQuizList] = useState(quizzes);
   const { cid } = useParams();
+
+  const togglePublish = (id: string) => {
+    setQuizList((prev) =>
+      prev.map((quiz) =>
+        quiz.id === id
+          ? {
+              ...quiz,
+              status: quiz.status === "Published" ? "Unpublished" : "Published",
+            }
+          : quiz
+      )
+    );
+  };
+
+  const deleteQuiz = (id: string) => {
+    const confirmed = window.confirm("Delete this quiz?");
+    if (!confirmed) return;
+    setQuizList((prev) => prev.filter((q) => q.id !== id));
+  };
+
+  const formatDate = (date: Date) =>
+    date.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
 
   return (
     <div className="p-3 d-flex flex-column gap-3" id="wd-quizzes-page">
@@ -82,10 +109,10 @@ export default function Quizzes() {
         </div>
 
         <ListGroup variant="flush">
-          {quizzes.map((quiz) => (
+          {quizList.map((quiz) => (
             <ListGroup.Item
               key={quiz.id}
-              className="d-flex align-items-start gap-3 border-0 border-bottom border-start border-5 border-success"
+              className="d-flex align-items-start gap-3 border-0 border-start border-5 border-success"
             >
               <FaRocket className="fs-5 text-secondary mt-1" />
               <div className="flex-grow-1">
@@ -99,17 +126,47 @@ export default function Quizzes() {
                     </Link>
                     <div className="text-muted small">
                       <span className="text-danger fw-semibold">
-                        {quiz.status.toUpperCase()}
+                        {quiz.availability === "Available"
+                          ? "AVAILABLE"
+                          : "CLOSED"}
                       </span>{" "}
-                      | {quiz.availableFrom}
-                      {quiz.availableUntil} | {quiz.points} pts |{" "}
-                      {quiz.questions} questions
+                      | Available from{" "}
+                      {formatDate(new Date(quiz.availableFrom))} | Due{" "}
+                      {formatDate(new Date(quiz.availableUntil))} |{" "}
+                      {quiz.points} pts | {quiz.questions} questions
                     </div>
                   </div>
                 </div>
               </div>
-              <FaCheckCircle className="text-success fs-5 mt-1" />
-              <FaEllipsisV className="fs-5 text-secondary mt-1" />
+              {quiz.status === "Published" ? (
+                <FaCheckCircle className="text-success fs-5 mt-1" />
+              ) : (
+                <FaBan className="text-danger fs-5 mt-1" />
+              )}
+              <Dropdown align="end">
+                <Dropdown.Toggle
+                  as="span"
+                  style={{ cursor: "pointer" }}
+                  className="text-secondary"
+                >
+                  <FaEllipsisV className="fs-5 mt-1" />
+                </Dropdown.Toggle>
+
+                <Dropdown.Menu>
+                  <Dropdown.Item
+                    as={Link}
+                    href={`/Courses/${cid}/Quizzes/${quiz.id}`}
+                  >
+                    Edit
+                  </Dropdown.Item>
+                  <Dropdown.Item onClick={() => deleteQuiz(quiz.id)}>
+                    Delete
+                  </Dropdown.Item>
+                  <Dropdown.Item onClick={() => togglePublish(quiz.id)}>
+                    {quiz.status === "Published" ? "Unpublish" : "Publish"}
+                  </Dropdown.Item>
+                </Dropdown.Menu>
+              </Dropdown>
             </ListGroup.Item>
           ))}
         </ListGroup>

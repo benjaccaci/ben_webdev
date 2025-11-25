@@ -8,6 +8,13 @@ export default function QuizDetails() {
   const { qid } = useParams();
   const quiz = quizzes.find((item) => item.id === qid) || quizzes[0];
 
+  const formatDate = (date: Date) =>
+    date.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+
   return (
     <div id="wd-quiz-details" className="container py-3">
       <div className="d-flex justify-content-between align-items-center mb-4">
@@ -34,6 +41,10 @@ export default function QuizDetails() {
             <tr>
               <th className="pe-5 text-end">Assignment Group</th>
               <td>QUIZZES</td>
+            </tr>
+            <tr>
+              <th className="pe-5 text-end">Status</th>
+              <td>{quiz.status}</td>
             </tr>
             <tr>
               <th className="pe-5 text-end">Shuffle Answers</th>
@@ -87,10 +98,10 @@ export default function QuizDetails() {
           </thead>
           <tbody>
             <tr>
-              <td>{quiz.availableUntil}</td>
+              <td>{formatDate(new Date(quiz.availableUntil))}</td>
               <td>Everyone</td>
-              <td>{quiz.availableFrom}</td>
-              <td>{quiz.availableUntil}</td>
+              <td>{formatDate(new Date(quiz.availableFrom))}</td>
+              <td>{formatDate(new Date(quiz.availableUntil))}</td>
             </tr>
           </tbody>
         </Table>
