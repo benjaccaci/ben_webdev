@@ -102,7 +102,7 @@ export default function QuizDetails() {
             </tr>
             <tr>
               <th className="pe-5 text-end">Show Correct Answers</th>
-              <td>{formatBoolean(quiz.showCorrectAnswers)}</td>
+              <td>{quiz.showCorrectAnswers}</td>
             </tr>
             <tr>
               <th className="pe-5 text-end">One Question at a Time</th>

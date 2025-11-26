@@ -15,15 +15,16 @@ import {
 } from "react-icons/fa";
 import { FaRocket } from "react-icons/fa6";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../../store";
-import { setQuizzes, deleteQuiz, updateQuiz } from "./reducer";
+import { setQuizzes, deleteQuiz, updateQuiz, addQuiz } from "./reducer";
 import * as client from "../../client";
 
 export default function Quizzes() {
   const { cid } = useParams();
   const dispatch = useDispatch();
+  const router = useRouter();
   const quizzes = useSelector(
     (state: RootState) => state.quizzesReducer.quizzes
   );
@@ -51,6 +52,12 @@ export default function Quizzes() {
 
     await client.updateQuiz(updated);
     dispatch(updateQuiz(updated));
+  };
+
+  const handleAddQuiz = async () => {
+    const newQuiz = await client.createQuizForCourse(cid as string, {});
+    dispatch(addQuiz(newQuiz));
+    router.push(`/Courses/${cid}/Quizzes/${newQuiz._id}/edit`);
   };
 
   const handleDelete = async (quizId: string) => {
@@ -89,30 +96,10 @@ export default function Quizzes() {
 
         <div className="d-flex flex-wrap align-items-center gap-2">
           <Button
-            variant="outline-secondary"
+            variant="danger"
             className="d-flex align-items-center"
+            onClick={handleAddQuiz}
           >
-            <FaArrowDown className="me-2" /> Sort
-          </Button>
-          <Button
-            variant="outline-secondary"
-            className="d-flex align-items-center"
-          >
-            <FaFilter className="me-2" /> Filter
-          </Button>
-          <Button
-            variant="outline-secondary"
-            className="d-flex align-items-center"
-          >
-            <FaBan className="me-2" /> Unpublish
-          </Button>
-          <Button
-            variant="outline-secondary"
-            className="d-flex align-items-center"
-          >
-            <FaEye className="me-2" /> Publish All
-          </Button>
-          <Button variant="danger" className="d-flex align-items-center">
             <FaPlus className="me-2" /> Add Quiz
           </Button>
         </div>

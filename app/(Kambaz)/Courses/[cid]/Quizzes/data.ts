@@ -1,3 +1,5 @@
+import { Question } from "./[qid]/questions/data";
+
 export type Quiz = {
   _id: string;
   title: string;
@@ -12,10 +14,11 @@ export type Quiz = {
   showOneQuestionAtATime: boolean;
   webcamRequired: boolean;
   lockQuestionsAfterAnswering: boolean;
-  showCorrectAnswers: boolean;
+  showCorrectAnswers: string;
   accessCode?: string;
   questions: number;
   timeLimitMinutes: number;
   availableFrom: string | Date;
   availableUntil: string | Date;
+  questionArray: Question[];
 };
