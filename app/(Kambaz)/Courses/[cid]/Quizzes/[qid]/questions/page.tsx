@@ -3,25 +3,11 @@
 
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { Button, Form, Card, Badge } from "react-bootstrap";
+import { Button, Form, Card, Badge, Nav } from "react-bootstrap";
 import { FaPlus, FaTrash, FaPencilAlt, FaArrowRight } from "react-icons/fa";
 import Link from "next/link";
 import * as client from "../../../../client";
-
-type Choice = {
-  id: string;
-  text: string;
-  isCorrect: boolean;
-};
-
-type Question = {
-  _id: string;
-  type: "MultipleChoice";
-  title: string;
-  points: number;
-  text: string;
-  choices: Choice[];
-};
+import { Question, QuestionType, Choice } from "./data";
 
 type Quiz = {
   _id: string;
@@ -36,12 +22,25 @@ export default function QuestionsEditor() {
   const router = useRouter();
 
   const [quiz, setQuiz] = useState<Quiz | null>(null);
+  const [loading, setLoading] = useState(true);
   const [editingQuestion, setEditingQuestion] = useState<Question | null>(null);
   const [isNewQuestion, setIsNewQuestion] = useState(false);
 
   const fetchQuiz = async () => {
-    const data = await client.findQuizById(qid as string);
-    setQuiz(data);
+    try {
+      setLoading(true);
+      const data = await client.findQuizById(qid as string);
+      setQuiz({
+        ...data,
+        questionArray: Array.isArray(data.questionArray)
+          ? data.questionArray
+          : [],
+      });
+    } catch (error) {
+      console.error("Error fetching quiz:", error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -50,27 +49,42 @@ export default function QuestionsEditor() {
 
   const generateId = () => Math.random().toString(36).substring(2, 9);
 
-  const handleNewQuestion = () => {
-    const newQuestion: Question = {
+  // Create a new question based on type
+  const createNewQuestion = (type: QuestionType): Question => {
+    const base = {
       _id: "",
-      type: "MultipleChoice",
       title: "New Question",
       points: 5,
       text: "Question text",
-      choices: [
-        { id: generateId(), text: "Choice A", isCorrect: true },
-        { id: generateId(), text: "Choice B", isCorrect: false },
-      ],
     };
-    setEditingQuestion(newQuestion);
+
+    switch (type) {
+      case "TrueFalse":
+        return { ...base, type: "TrueFalse", correctAnswer: true };
+      case "FillInTheBlank":
+        return { ...base, type: "FillInTheBlank", blanks: [""] };
+      case "MultipleChoice":
+      default:
+        return {
+          ...base,
+          type: "MultipleChoice",
+          choices: [
+            { id: generateId(), text: "Choice A", isCorrect: true },
+            { id: generateId(), text: "Choice B", isCorrect: false },
+          ],
+        };
+    }
+  };
+
+  const handleNewQuestion = () => {
+    setEditingQuestion(createNewQuestion("MultipleChoice"));
     setIsNewQuestion(true);
   };
 
   const handleEditQuestion = (question: Question) => {
-    setEditingQuestion({
-      ...question,
-      choices: question.choices.map((c) => ({ ...c })),
-    });
+    // Deep copy the question
+    const copy = JSON.parse(JSON.stringify(question));
+    setEditingQuestion(copy);
     setIsNewQuestion(false);
   };
 
@@ -113,13 +127,48 @@ export default function QuestionsEditor() {
     }
   };
 
+  // Update a field on the editing question
   const updateEditingQuestion = (field: string, value: any) => {
     if (!editingQuestion) return;
-    setEditingQuestion({ ...editingQuestion, [field]: value });
+    setEditingQuestion({ ...editingQuestion, [field]: value } as Question);
   };
 
-  const updateChoice = (choiceId: string, text: string) => {
+  // Handle type change - convert question to new type
+  const handleTypeChange = (newType: QuestionType) => {
     if (!editingQuestion) return;
+
+    const base = {
+      _id: editingQuestion._id,
+      title: editingQuestion.title,
+      points: editingQuestion.points,
+      text: editingQuestion.text,
+    };
+
+    let newQuestion: Question;
+    switch (newType) {
+      case "TrueFalse":
+        newQuestion = { ...base, type: "TrueFalse", correctAnswer: true };
+        break;
+      case "FillInTheBlank":
+        newQuestion = { ...base, type: "FillInTheBlank", blanks: [""] };
+        break;
+      case "MultipleChoice":
+      default:
+        newQuestion = {
+          ...base,
+          type: "MultipleChoice",
+          choices: [
+            { id: generateId(), text: "Choice A", isCorrect: true },
+            { id: generateId(), text: "Choice B", isCorrect: false },
+          ],
+        };
+    }
+    setEditingQuestion(newQuestion);
+  };
+
+  // Multiple Choice specific handlers
+  const updateChoice = (choiceId: string, text: string) => {
+    if (!editingQuestion || editingQuestion.type !== "MultipleChoice") return;
     setEditingQuestion({
       ...editingQuestion,
       choices: editingQuestion.choices.map((c) =>
@@ -129,7 +178,7 @@ export default function QuestionsEditor() {
   };
 
   const setCorrectChoice = (choiceId: string) => {
-    if (!editingQuestion) return;
+    if (!editingQuestion || editingQuestion.type !== "MultipleChoice") return;
     setEditingQuestion({
       ...editingQuestion,
       choices: editingQuestion.choices.map((c) => ({
@@ -140,7 +189,7 @@ export default function QuestionsEditor() {
   };
 
   const addChoice = () => {
-    if (!editingQuestion) return;
+    if (!editingQuestion || editingQuestion.type !== "MultipleChoice") return;
     setEditingQuestion({
       ...editingQuestion,
       choices: [
@@ -151,7 +200,9 @@ export default function QuestionsEditor() {
   };
 
   const removeChoice = (choiceId: string) => {
-    if (!editingQuestion || editingQuestion.choices.length <= 2) return;
+    if (!editingQuestion || editingQuestion.type !== "MultipleChoice") return;
+    if (editingQuestion.choices.length <= 2) return;
+
     const newChoices = editingQuestion.choices.filter((c) => c.id !== choiceId);
     if (!newChoices.some((c) => c.isCorrect)) {
       newChoices[0].isCorrect = true;
@@ -159,27 +210,278 @@ export default function QuestionsEditor() {
     setEditingQuestion({ ...editingQuestion, choices: newChoices });
   };
 
-  const totalPoints =
-    quiz?.questionArray?.reduce((sum, q) => sum + q.points, 0) || 0;
+  // Fill in the Blank specific handlers
+  const updateBlank = (index: number, value: string) => {
+    if (!editingQuestion || editingQuestion.type !== "FillInTheBlank") return;
+    const newBlanks = [...editingQuestion.blanks];
+    newBlanks[index] = value;
+    setEditingQuestion({ ...editingQuestion, blanks: newBlanks });
+  };
 
-  if (!quiz) return <div className="p-4">Loading...</div>;
+  const addBlank = () => {
+    if (!editingQuestion || editingQuestion.type !== "FillInTheBlank") return;
+    setEditingQuestion({
+      ...editingQuestion,
+      blanks: [...editingQuestion.blanks, ""],
+    });
+  };
+
+  const removeBlank = (index: number) => {
+    if (!editingQuestion || editingQuestion.type !== "FillInTheBlank") return;
+    if (editingQuestion.blanks.length <= 1) return;
+
+    const newBlanks = editingQuestion.blanks.filter((_, i) => i !== index);
+    setEditingQuestion({ ...editingQuestion, blanks: newBlanks });
+  };
+
+  // Get display label for question type
+  const getTypeLabel = (type: QuestionType) => {
+    switch (type) {
+      case "TrueFalse":
+        return "True/False";
+      case "FillInTheBlank":
+        return "Fill in the Blank";
+      case "MultipleChoice":
+      default:
+        return "Multiple Choice";
+    }
+  };
+
+  // Render question preview in list
+  const renderQuestionPreview = (question: Question) => {
+    switch (question.type) {
+      case "TrueFalse":
+        return (
+          <div className="small">
+            <div
+              className={question.correctAnswer ? "text-success fw-bold" : ""}
+            >
+              {question.correctAnswer ? "✓ " : "○ "}True
+            </div>
+            <div
+              className={!question.correctAnswer ? "text-success fw-bold" : ""}
+            >
+              {!question.correctAnswer ? "✓ " : "○ "}False
+            </div>
+          </div>
+        );
+      case "FillInTheBlank":
+        return (
+          <div className="small">
+            <span className="text-muted">Correct answers: </span>
+            {(question.blanks || []).map((blank, i) => (
+              <Badge key={i} bg="success" className="me-1">
+                {blank || "(empty)"}
+              </Badge>
+            ))}
+          </div>
+        );
+      case "MultipleChoice":
+      default:
+        return (
+          <div className="small">
+            {(question.choices || []).map((choice) => (
+              <div
+                key={choice.id}
+                className={choice.isCorrect ? "text-success fw-bold" : ""}
+              >
+                {choice.isCorrect ? "✓ " : "○ "}
+                {choice.text || "(empty)"}
+              </div>
+            ))}
+          </div>
+        );
+    }
+  };
+
+  // Render the type-specific editor
+  const renderQuestionEditor = () => {
+    if (!editingQuestion) return null;
+
+    switch (editingQuestion.type) {
+      case "TrueFalse":
+        return (
+          <Form.Group className="mb-4">
+            <Form.Label>
+              <strong>Answers:</strong>
+            </Form.Label>
+            <div className="d-flex flex-column gap-2">
+              <Form.Check
+                type="radio"
+                id="true-option"
+                name="trueFalseAnswer"
+                label={
+                  <span
+                    className={
+                      editingQuestion.correctAnswer
+                        ? "text-success fw-bold"
+                        : ""
+                    }
+                  >
+                    True
+                  </span>
+                }
+                checked={editingQuestion.correctAnswer === true}
+                onChange={() => updateEditingQuestion("correctAnswer", true)}
+              />
+              <Form.Check
+                type="radio"
+                id="false-option"
+                name="trueFalseAnswer"
+                label={
+                  <span
+                    className={
+                      !editingQuestion.correctAnswer
+                        ? "text-success fw-bold"
+                        : ""
+                    }
+                  >
+                    False
+                  </span>
+                }
+                checked={editingQuestion.correctAnswer === false}
+                onChange={() => updateEditingQuestion("correctAnswer", false)}
+              />
+            </div>
+          </Form.Group>
+        );
+
+      case "FillInTheBlank":
+        return (
+          <Form.Group className="mb-4">
+            <Form.Label>
+              <strong>Possible Correct Answers:</strong>
+            </Form.Label>
+            <p className="text-muted small">
+              Enter all possible correct answers. Answers are case-insensitive.
+            </p>
+            {editingQuestion.blanks.map((blank, index) => (
+              <div key={index} className="d-flex align-items-center gap-2 mb-2">
+                <span className="text-muted small" style={{ width: "120px" }}>
+                  Possible Answer:
+                </span>
+                <Form.Control
+                  type="text"
+                  value={blank}
+                  onChange={(e) => updateBlank(index, e.target.value)}
+                  placeholder="Enter possible answer..."
+                  className="flex-grow-1"
+                />
+                {editingQuestion.blanks.length > 1 && (
+                  <Button
+                    variant="outline-danger"
+                    size="sm"
+                    onClick={() => removeBlank(index)}
+                  >
+                    <FaTrash />
+                  </Button>
+                )}
+              </div>
+            ))}
+            <Button
+              variant="link"
+              className="text-danger p-0 mt-2"
+              onClick={addBlank}
+            >
+              + Add Another Answer
+            </Button>
+          </Form.Group>
+        );
+
+      case "MultipleChoice":
+      default:
+        return (
+          <Form.Group className="mb-4">
+            <Form.Label>
+              <strong>Answers:</strong>
+            </Form.Label>
+            {editingQuestion.choices.map((choice) => (
+              <div
+                key={choice.id}
+                className="d-flex align-items-center gap-2 mb-2"
+              >
+                <Form.Check
+                  type="radio"
+                  name="correctAnswer"
+                  checked={choice.isCorrect}
+                  onChange={() => setCorrectChoice(choice.id)}
+                  title="Mark as correct answer"
+                />
+                <span
+                  className={`small ${
+                    choice.isCorrect ? "text-success fw-bold" : "text-muted"
+                  }`}
+                  style={{ width: "100px" }}
+                >
+                  {choice.isCorrect ? "Correct Answer" : "Possible Answer"}
+                </span>
+                <Form.Control
+                  type="text"
+                  value={choice.text}
+                  onChange={(e) => updateChoice(choice.id, e.target.value)}
+                  placeholder="Enter answer..."
+                  className="flex-grow-1"
+                />
+                {editingQuestion.choices.length > 2 && (
+                  <Button
+                    variant="outline-danger"
+                    size="sm"
+                    onClick={() => removeChoice(choice.id)}
+                  >
+                    <FaTrash />
+                  </Button>
+                )}
+              </div>
+            ))}
+            <Button
+              variant="link"
+              className="text-danger p-0 mt-2"
+              onClick={addChoice}
+            >
+              + Add Another Answer
+            </Button>
+          </Form.Group>
+        );
+    }
+  };
+
+  const questionArray = quiz?.questionArray || [];
+  const totalPoints = questionArray.reduce(
+    (sum, q) => sum + (q.points || 0),
+    0
+  );
+
+  if (loading) {
+    return <div className="p-4">Loading...</div>;
+  }
+
+  if (!quiz) {
+    return <div className="p-4">Quiz not found</div>;
+  }
 
   return (
     <div className="p-4">
+      {/* Header with tabs */}
       <div className="d-flex justify-content-between align-items-center mb-3">
-        <div className="d-flex gap-2">
-          <Link href={`/Courses/${cid}/Quizzes/${qid}/edit`}>
-            <Button variant="outline-secondary">Details</Button>
-          </Link>
-          <Button variant="secondary" disabled>
-            Questions
-          </Button>
-        </div>
+        <Nav variant="tabs">
+          <Nav.Item>
+            <Nav.Link
+              onClick={() => router.push(`/Courses/${cid}/Quizzes/${qid}/edit`)}
+              style={{ cursor: "pointer" }}
+            >
+              Details
+            </Nav.Link>
+          </Nav.Item>
+          <Nav.Item>
+            <Nav.Link active>Questions</Nav.Link>
+          </Nav.Item>
+        </Nav>
         <div className="text-muted">
           Points: <strong>{totalPoints}</strong>
         </div>
       </div>
 
+      {/* Questions List */}
       {!editingQuestion && (
         <>
           <div className="mb-3">
@@ -188,38 +490,28 @@ export default function QuestionsEditor() {
             </Button>
           </div>
 
-          {quiz.questionArray?.length === 0 && (
+          {questionArray.length === 0 && (
             <div className="text-muted text-center py-5 border rounded">
               No questions yet.
             </div>
           )}
 
-          {quiz.questionArray?.map((question, index) => (
+          {questionArray.map((question, index) => (
             <Card key={question._id} className="mb-3">
               <Card.Body>
                 <div className="d-flex justify-content-between align-items-start">
                   <div className="flex-grow-1">
                     <div className="d-flex align-items-center gap-2 mb-2">
                       <strong>
-                        Q{index + 1}: {question.title}
+                        Q{index + 1}: {question.title || "Untitled"}
                       </strong>
-                      <Badge bg="secondary">{question.type}</Badge>
-                      <Badge bg="info">{question.points} pts</Badge>
+                      <Badge bg="danger">{getTypeLabel(question.type)}</Badge>
+                      <Badge bg="secondary">{question.points || 0} pts</Badge>
                     </div>
-                    <p className="text-muted mb-2">{question.text}</p>
-                    <div className="small">
-                      {question.choices.map((choice) => (
-                        <div
-                          key={choice.id}
-                          className={
-                            choice.isCorrect ? "text-success fw-bold" : ""
-                          }
-                        >
-                          {choice.isCorrect ? "✓ " : "○ "}
-                          {choice.text}
-                        </div>
-                      ))}
-                    </div>
+                    <p className="text-muted mb-2">
+                      {question.text || "No question text"}
+                    </p>
+                    {renderQuestionPreview(question)}
                   </div>
                   <div className="d-flex gap-2">
                     <Button
@@ -244,6 +536,7 @@ export default function QuestionsEditor() {
         </>
       )}
 
+      {/* Question Editor */}
       {editingQuestion && (
         <Card className="border-danger">
           <Card.Header className="bg-light">
@@ -251,7 +544,7 @@ export default function QuestionsEditor() {
               <div className="d-flex align-items-center gap-3">
                 <Form.Control
                   type="text"
-                  value={editingQuestion.title}
+                  value={editingQuestion.title || ""}
                   onChange={(e) =>
                     updateEditingQuestion("title", e.target.value)
                   }
@@ -261,36 +554,31 @@ export default function QuestionsEditor() {
                 <Form.Select
                   value={editingQuestion.type}
                   onChange={(e) =>
-                    updateEditingQuestion("type", e.target.value)
+                    handleTypeChange(e.target.value as QuestionType)
                   }
-                  style={{ width: "150px" }}
+                  style={{ width: "180px" }}
                 >
                   <option value="MultipleChoice">Multiple Choice</option>
+                  <option value="TrueFalse">True/False</option>
+                  <option value="FillInTheBlank">Fill in the Blank</option>
                 </Form.Select>
               </div>
               <div className="d-flex align-items-center gap-2">
                 <span>pts:</span>
                 <Form.Control
                   type="number"
-                  value={editingQuestion.points}
+                  value={editingQuestion.points ?? 0}
                   onChange={(e) =>
                     updateEditingQuestion(
                       "points",
                       parseInt(e.target.value) || 0
                     )
                   }
-                  style={{ width: "70px" }}
-                  min={0}
                 />
               </div>
             </div>
           </Card.Header>
           <Card.Body>
-            <p className="text-muted small mb-3">
-              Enter your question and multiple answers, then select the one
-              correct answer.
-            </p>
-
             <Form.Group className="mb-4">
               <Form.Label>
                 <strong>Question:</strong>
@@ -298,61 +586,13 @@ export default function QuestionsEditor() {
               <Form.Control
                 as="textarea"
                 rows={3}
-                value={editingQuestion.text}
+                value={editingQuestion.text || ""}
                 onChange={(e) => updateEditingQuestion("text", e.target.value)}
                 placeholder="Enter question text..."
               />
             </Form.Group>
 
-            <Form.Group className="mb-4">
-              <Form.Label>
-                <strong>Answers:</strong>
-              </Form.Label>
-              {editingQuestion.choices.map((choice) => (
-                <div
-                  key={choice.id}
-                  className="d-flex align-items-center gap-2 mb-2"
-                >
-                  <Form.Check
-                    type="radio"
-                    name="correctAnswer"
-                    checked={choice.isCorrect}
-                    onChange={() => setCorrectChoice(choice.id)}
-                    title="Mark as correct answer"
-                  />
-                  <span
-                    className={`small ${
-                      choice.isCorrect ? "text-success fw-bold" : "text-muted"
-                    }`}
-                  >
-                    {choice.isCorrect ? "Correct Answer" : "Possible Answer"}
-                  </span>
-                  <Form.Control
-                    type="text"
-                    value={choice.text}
-                    onChange={(e) => updateChoice(choice.id, e.target.value)}
-                    placeholder="Enter answer..."
-                    className="flex-grow-1"
-                  />
-                  {editingQuestion.choices.length > 2 && (
-                    <Button
-                      variant="outline-danger"
-                      size="sm"
-                      onClick={() => removeChoice(choice.id)}
-                    >
-                      <FaTrash />
-                    </Button>
-                  )}
-                </div>
-              ))}
-              <Button
-                variant="link"
-                className="text-danger p-0 mt-2"
-                onClick={addChoice}
-              >
-                + Add Another Answer
-              </Button>
-            </Form.Group>
+            {renderQuestionEditor()}
 
             <div className="d-flex gap-2">
               <Button variant="outline-secondary" onClick={handleCancel}>
@@ -366,6 +606,7 @@ export default function QuestionsEditor() {
         </Card>
       )}
 
+      {/* Bottom navigation */}
       <div className="d-flex justify-content-between mt-4 pt-3 border-top">
         <Button
           variant="outline-secondary"

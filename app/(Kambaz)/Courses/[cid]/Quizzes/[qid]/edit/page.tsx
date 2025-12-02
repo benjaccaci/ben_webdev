@@ -35,6 +35,7 @@ export default function QuizEditor() {
     setQuiz((prev: any) => ({ ...prev, [field]: value }));
   };
 
+  // Use a publish field to differentiate between save and save & publish
   const save = async (publish = false) => {
     const updated = {
       ...quiz,
@@ -63,12 +64,12 @@ export default function QuizEditor() {
     <div className="container py-3">
       <h2>Edit Quiz</h2>
 
-      {/* Custom Tab Navigation */}
       <Nav variant="tabs" className="my-3">
         <Nav.Item>
           <Nav.Link active>Details</Nav.Link>
         </Nav.Item>
         <Nav.Item>
+          {/* Send to Questions page for question editing */}
           <Nav.Link
             onClick={() =>
               router.push(`/Courses/${cid}/Quizzes/${qid}/questions`)
@@ -80,6 +81,8 @@ export default function QuizEditor() {
         </Nav.Item>
       </Nav>
 
+      {/* Same FormGroup styling for all the fields, just different data types */}
+      {/* Should use FormGroup, Table, or something else?*/}
       <div className="border rounded p-3">
         <Form.Group className="mb-3">
           <Form.Label>Quiz Title</Form.Label>
@@ -160,6 +163,7 @@ export default function QuizEditor() {
               </Form.Select>
             </Form.Group>
 
+            {/* Certain fields must be checkboxes according to Canvas rubric */}
             <Form.Group className="mb-3 d-flex align-items-center gap-2">
               <Form.Check
                 type="checkbox"

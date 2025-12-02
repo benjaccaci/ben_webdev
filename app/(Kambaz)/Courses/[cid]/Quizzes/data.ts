@@ -1,5 +1,8 @@
 import { Question } from "./[qid]/questions/data";
 
+// Dummy quiz type, actual site uses the backend data type
+// Not sure if I need to keep this after connecting to NodeJS
+
 export type Quiz = {
   _id: string;
   title: string;

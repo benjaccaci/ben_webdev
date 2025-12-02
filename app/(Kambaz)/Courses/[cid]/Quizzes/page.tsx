@@ -39,6 +39,7 @@ export default function Quizzes() {
     fetchQuizzes();
   }, [cid]);
 
+  // Use this to format dates to be less ugly
   const formatDate = (date: Date) =>
     new Date(date).toLocaleDateString("en-US", {
       month: "short",
@@ -46,6 +47,7 @@ export default function Quizzes() {
       year: "numeric",
     });
 
+  // Publishes after any changes are made
   const togglePublish = async (quiz: any) => {
     const newStatus = quiz.status === "Published" ? "Unpublished" : "Published";
     const updated = { ...quiz, status: newStatus };
@@ -81,7 +83,7 @@ export default function Quizzes() {
       <div className="d-flex justify-content-between align-items-center flex-wrap gap-2">
         <h1 className="mb-0">Quizzes</h1>
       </div>
-
+      {/* Use Search to do quiz text search - NEED TO FIX */}
       <div className="d-flex justify-content-between align-items-center flex-wrap gap-3">
         <InputGroup style={{ maxWidth: "340px" }}>
           <InputGroup.Text>
@@ -116,6 +118,7 @@ export default function Quizzes() {
           <FaEllipsisV />
         </div>
 
+        {/* Quiz list, formatted to match the Canvas example */}
         <ListGroup variant="flush">
           {sortedQuizzes.map((quiz) => (
             <ListGroup.Item
@@ -151,6 +154,7 @@ export default function Quizzes() {
               ) : (
                 <FaBan className="text-danger fs-5 mt-1" />
               )}
+              {/* Handle the dropdowns here */}
               <Dropdown align="end">
                 <Dropdown.Toggle
                   as="span"

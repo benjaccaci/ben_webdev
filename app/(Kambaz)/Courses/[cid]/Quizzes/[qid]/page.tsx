@@ -24,6 +24,7 @@ export default function QuizDetails() {
     fetchQuiz();
   }, [qid]);
 
+  // Same date formatting function from before
   const formatDate = (date: Date) =>
     date.toLocaleDateString("en-US", {
       month: "short",
@@ -46,6 +47,7 @@ export default function QuizDetails() {
     <div id="wd-quiz-details" className="container py-3">
       <div className="d-flex justify-content-between align-items-center mb-4">
         <h2 className="m-0">{quiz.title}</h2>
+        {/* Publish/Unpublish should be opposite of current state */}
         <div className="d-flex gap-2">
           <Button
             variant="light"
@@ -65,6 +67,7 @@ export default function QuizDetails() {
         </div>
       </div>
 
+      {/* List of quiz fields matching the Canvas example in google doc */}
       <div className="border rounded p-4">
         <Table borderless className="small w-auto">
           <tbody>
