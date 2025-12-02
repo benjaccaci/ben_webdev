@@ -461,7 +461,7 @@ export default function QuestionsEditor() {
 
   return (
     <div className="p-4">
-      {/* Header with tabs */}
+      {/* Nav tabs to the other quiz editor pages */}
       <div className="d-flex justify-content-between align-items-center mb-3">
         <Nav variant="tabs">
           <Nav.Item>
@@ -474,6 +474,16 @@ export default function QuestionsEditor() {
           </Nav.Item>
           <Nav.Item>
             <Nav.Link active>Questions</Nav.Link>
+          </Nav.Item>
+          <Nav.Item>
+            <Nav.Link
+              onClick={() =>
+                router.push(`/Courses/${cid}/Quizzes/${qid}/preview`)
+              }
+              style={{ cursor: "pointer" }}
+            >
+              Preview
+            </Nav.Link>
           </Nav.Item>
         </Nav>
         <div className="text-muted">

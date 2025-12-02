@@ -64,12 +64,12 @@ export default function QuizEditor() {
     <div className="container py-3">
       <h2>Edit Quiz</h2>
 
+      {/* Nav tabs to the other quiz editor pages */}
       <Nav variant="tabs" className="my-3">
         <Nav.Item>
           <Nav.Link active>Details</Nav.Link>
         </Nav.Item>
         <Nav.Item>
-          {/* Send to Questions page for question editing */}
           <Nav.Link
             onClick={() =>
               router.push(`/Courses/${cid}/Quizzes/${qid}/questions`)
@@ -77,6 +77,16 @@ export default function QuizEditor() {
             style={{ cursor: "pointer" }}
           >
             Questions
+          </Nav.Link>
+        </Nav.Item>
+        <Nav.Item>
+          <Nav.Link
+            onClick={() =>
+              router.push(`/Courses/${cid}/Quizzes/${qid}/preview`)
+            }
+            style={{ cursor: "pointer" }}
+          >
+            Preview
           </Nav.Link>
         </Nav.Item>
       </Nav>
