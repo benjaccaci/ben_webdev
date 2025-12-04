@@ -38,8 +38,8 @@ export default function QuizPreview() {
   const [userAnswers, setUserAnswers] = useState<UserAnswers>({});
   const [submitted, setSubmitted] = useState(false);
   const [score, setScore] = useState(0);
-  const [startTime] = useState(new Date());
 
+  // Get the quiz from the backend and load it
   const fetchQuiz = async () => {
     try {
       setLoading(true);
@@ -65,6 +65,7 @@ export default function QuizPreview() {
   const isAnswerCorrect = (question: Question, userAnswer: any): boolean => {
     if (userAnswer === undefined || userAnswer === null) return false;
 
+    // Depends on the Q type
     switch (question.type) {
       case "MultipleChoice": {
         const correctChoice = question.choices.find((c) => c.isCorrect);
@@ -74,6 +75,7 @@ export default function QuizPreview() {
         return question.correctAnswer === userAnswer;
       }
       case "FillInTheBlank": {
+        // Case insensitive, so make sure to lowercase
         const userAnswerLower = String(userAnswer).toLowerCase().trim();
         return question.blanks.some(
           (blank) => blank.toLowerCase().trim() === userAnswerLower
@@ -84,11 +86,12 @@ export default function QuizPreview() {
     }
   };
 
-  // Calculate total score
+  // Calculate the total score (all Qs added up)
   const calculateScore = (): number => {
     if (!quiz) return 0;
     let totalScore = 0;
     quiz.questionArray.forEach((question) => {
+      // Use the answer checking function here
       if (isAnswerCorrect(question, userAnswers[question._id])) {
         totalScore += question.points;
       }
@@ -96,7 +99,7 @@ export default function QuizPreview() {
     return totalScore;
   };
 
-  // Handle answer selection
+  // When the user changes the answer, update the Question object
   const handleAnswerChange = (questionId: string, answer: any) => {
     setUserAnswers((prev) => ({
       ...prev,
@@ -104,15 +107,15 @@ export default function QuizPreview() {
     }));
   };
 
-  // Submit the quiz
+  // Submit the quiz (do I need all Qs to be answered?)
   const handleSubmit = () => {
     const finalScore = calculateScore();
     setScore(finalScore);
     setSubmitted(true);
-    setCurrentQuestionIndex(0); // Reset to first question to review
+    // In Canvas, the quiz will go back to the first question after submit
+    setCurrentQuestionIndex(0);
   };
 
-  // Reset the quiz
   const handleRetake = () => {
     setUserAnswers({});
     setSubmitted(false);
@@ -120,7 +123,7 @@ export default function QuizPreview() {
     setCurrentQuestionIndex(0);
   };
 
-  // Navigation
+  // These navigation functions are pretty self-explanatory
   const goToNext = () => {
     if (currentQuestionIndex < questionArray.length - 1) {
       setCurrentQuestionIndex((prev) => prev + 1);
@@ -137,15 +140,18 @@ export default function QuizPreview() {
   const renderQuestion = (question: Question, index: number) => {
     const userAnswer = userAnswers[question._id];
     const isCorrect = submitted ? isAnswerCorrect(question, userAnswer) : null;
+    // This is NOT good code, but I think it should account for all 3 Qs
     const hasAnswered =
       userAnswer !== undefined && userAnswer !== null && userAnswer !== "";
 
     return (
       <Card
+        // If submitted, show the right/wrong color
         className={`mb-4 ${
           submitted ? (isCorrect ? "border-success" : "border-danger") : ""
         }`}
       >
+        {/*Also show a right/wrong icon*/}
         <Card.Header className="d-flex justify-content-between align-items-center bg-light">
           <div className="d-flex align-items-center gap-2">
             {submitted &&
@@ -163,6 +169,7 @@ export default function QuizPreview() {
             {question.text}
           </p>
 
+          {/*For MC, map all of the options in a list*/}
           {question.type === "MultipleChoice" && (
             <div className="d-flex flex-column gap-2">
               {question.choices.map((choice) => (
@@ -188,6 +195,7 @@ export default function QuizPreview() {
                     </span>
                   }
                   checked={userAnswer === choice.id}
+                  // Make sure to change the answer after any new selection
                   onChange={() => handleAnswerChange(question._id, choice.id)}
                   disabled={submitted}
                 />
@@ -195,6 +203,7 @@ export default function QuizPreview() {
             </div>
           )}
 
+          {/*For T/F, the assignment specifies that they have to be radios*/}
           {question.type === "TrueFalse" && (
             <div className="d-flex flex-column gap-2">
               <Form.Check
@@ -248,6 +257,7 @@ export default function QuizPreview() {
             </div>
           )}
 
+          {/*For Fill in the Blank, just show a text box that they can use*/}
           {question.type === "FillInTheBlank" && (
             <div>
               <Form.Control
@@ -255,6 +265,8 @@ export default function QuizPreview() {
                 placeholder="Type your answer here..."
                 value={(userAnswer as string) || ""}
                 onChange={(e) =>
+                  // Is this different from other handleChange
+                  // TO-DO: Find out
                   handleAnswerChange(question._id, e.target.value)
                 }
                 disabled={submitted}
@@ -266,6 +278,7 @@ export default function QuizPreview() {
                     : ""
                 }
               />
+              {/*Not sure if this is necessary, but is nice to have*/}
               {submitted && !isCorrect && (
                 <div className="mt-2 text-success small">
                   <strong>Correct answer(s):</strong>{" "}
@@ -282,7 +295,7 @@ export default function QuizPreview() {
           )}
           {submitted && isCorrect && (
             <Alert variant="success" className="mt-3 mb-0 py-2">
-              <small>Correct!</small>
+              <small>Correct</small>
             </Alert>
           )}
         </Card.Body>
@@ -290,14 +303,12 @@ export default function QuizPreview() {
     );
   };
 
+  // Question array is taken from the quiz data type
   const questionArray = quiz?.questionArray || [];
   const totalPoints = questionArray.reduce(
     (sum, q) => sum + (q.points || 0),
     0
   );
-  const answeredCount = Object.keys(userAnswers).filter(
-    (key) => userAnswers[key] !== undefined && userAnswers[key] !== ""
-  ).length;
   const currentQuestion = questionArray[currentQuestionIndex];
 
   if (loading) {
@@ -310,7 +321,8 @@ export default function QuizPreview() {
 
   return (
     <div className="p-4">
-      {/* Header with tabs */}
+      {/* Header with links to the other quiz editor pages (Details, Edit) */}
+      {/* Still not ENTIRELY sure if the preview is at the same level/spot as those */}
       <div className="d-flex justify-content-between align-items-center mb-3">
         <Nav variant="tabs">
           <Nav.Item>
@@ -337,12 +349,12 @@ export default function QuizPreview() {
         </Nav>
       </div>
 
-      {/* Preview Banner */}
+      {/* A preview banner to match the Canvas screenshot in google doc */}
       <Alert variant="danger" className="d-flex align-items-center gap-2">
         <span>This is a preview of your quiz. </span>
       </Alert>
 
-      {/* Score Summary (after submission) */}
+      {/* Score Summary - IMPORTANT that it is only after submission */}
       {submitted && (
         <Alert
           variant={score === totalPoints ? "success" : "warning"}
@@ -353,19 +365,10 @@ export default function QuizPreview() {
             <strong>Your Score:</strong> {score} / {totalPoints} points (
             {totalPoints > 0 ? Math.round((score / totalPoints) * 100) : 0}%)
           </p>
-          <p className="mb-0">
-            <strong>Questions Correct:</strong>{" "}
-            {
-              questionArray.filter((q) =>
-                isAnswerCorrect(q, userAnswers[q._id])
-              ).length
-            }{" "}
-            / {questionArray.length}
-          </p>
         </Alert>
       )}
 
-      {/* Questions */}
+      {/* Edge case where there are no questions, might be needed */}
       {questionArray.length === 0 ? (
         <Alert variant="info">This quiz has no questions yet.</Alert>
       ) : (
@@ -374,11 +377,12 @@ export default function QuizPreview() {
           {currentQuestion &&
             renderQuestion(currentQuestion, currentQuestionIndex)}
 
-          {/* Navigation between Qs */}
+          {/* Navigation between Qs, should work ? */}
           <div className="d-flex justify-content-between align-items-center mb-4">
             <Button
               variant="outline-secondary"
               onClick={goToPrevious}
+              // Current design is to disable edge buttons, but maybe should loop around?
               disabled={currentQuestionIndex === 0}
             >
               <FaArrowLeft className="me-2" /> Previous
@@ -394,7 +398,7 @@ export default function QuizPreview() {
         </>
       )}
 
-      {/* Quiz Footer */}
+      {/* Quiz Footer with the submission stuff */}
       {questionArray.length > 0 && (
         <Card className="mt-4">
           <Card.Body className="d-flex justify-content-between align-items-center">
@@ -420,7 +424,7 @@ export default function QuizPreview() {
         </Card>
       )}
 
-      {/* Keep Editing Button */}
+      {/* Keep Editing Button - required in assignment google doc */}
       <div className="mt-4 pt-3 border-top">
         <Button
           variant="link"

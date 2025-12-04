@@ -26,6 +26,7 @@ export default function QuestionsEditor() {
   const [editingQuestion, setEditingQuestion] = useState<Question | null>(null);
   const [isNewQuestion, setIsNewQuestion] = useState(false);
 
+  // Used for refreshing after any changes are made to the Qs
   const fetchQuiz = async () => {
     try {
       setLoading(true);
@@ -47,9 +48,10 @@ export default function QuestionsEditor() {
     if (qid) fetchQuiz();
   }, [qid]);
 
-  const generateId = () => Math.random().toString(36).substring(2, 9);
+  // Less ugly than UUID but might technically fail if 100+ choices
+  const generateId = () => (Math.random() * 100).toString();
 
-  // Create a new question based on type
+  // Create a new question based on type - default values based on the assignment google doc
   const createNewQuestion = (type: QuestionType): Question => {
     const base = {
       _id: "",
@@ -82,7 +84,8 @@ export default function QuestionsEditor() {
   };
 
   const handleEditQuestion = (question: Question) => {
-    // Deep copy the question
+    // BUG was that editing the question would ruin the list
+    // Found the solution online, just a deep copy (from OOD)
     const copy = JSON.parse(JSON.stringify(question));
     setEditingQuestion(copy);
     setIsNewQuestion(false);
@@ -97,6 +100,7 @@ export default function QuestionsEditor() {
     if (!editingQuestion || !quiz) return;
 
     try {
+      // Not sure if I need to differentiate between new + existing Qs
       if (isNewQuestion) {
         await client.addQuestionToQuiz(quiz._id, editingQuestion);
       } else {
@@ -110,6 +114,7 @@ export default function QuestionsEditor() {
       setEditingQuestion(null);
       setIsNewQuestion(false);
     } catch (error) {
+      // Being very cautious with these try/catches, why not?
       console.error("Error saving question:", error);
     }
   };
@@ -133,7 +138,7 @@ export default function QuestionsEditor() {
     setEditingQuestion({ ...editingQuestion, [field]: value } as Question);
   };
 
-  // Handle type change - convert question to new type
+  // Handle type change - need to TEST this
   const handleTypeChange = (newType: QuestionType) => {
     if (!editingQuestion) return;
 
@@ -166,8 +171,10 @@ export default function QuestionsEditor() {
     setEditingQuestion(newQuestion);
   };
 
-  // Multiple Choice specific handlers
+  // MC specific handler
+  // QUESTION: Figure out if there's a way to prevent other Q types from using this
   const updateChoice = (choiceId: string, text: string) => {
+    // ANSWER: is the type guard needed
     if (!editingQuestion || editingQuestion.type !== "MultipleChoice") return;
     setEditingQuestion({
       ...editingQuestion,
@@ -188,6 +195,7 @@ export default function QuestionsEditor() {
     });
   };
 
+  // Default new choice should not be the right one, that would be weird
   const addChoice = () => {
     if (!editingQuestion || editingQuestion.type !== "MultipleChoice") return;
     setEditingQuestion({
@@ -205,12 +213,13 @@ export default function QuestionsEditor() {
 
     const newChoices = editingQuestion.choices.filter((c) => c.id !== choiceId);
     if (!newChoices.some((c) => c.isCorrect)) {
+      // By default, if the correct choice was removed it makes sense to default to the first one
       newChoices[0].isCorrect = true;
     }
     setEditingQuestion({ ...editingQuestion, choices: newChoices });
   };
 
-  // Fill in the Blank specific handlers
+  // FITB specific handlers
   const updateBlank = (index: number, value: string) => {
     if (!editingQuestion || editingQuestion.type !== "FillInTheBlank") return;
     const newBlanks = [...editingQuestion.blanks];
@@ -234,7 +243,7 @@ export default function QuestionsEditor() {
     setEditingQuestion({ ...editingQuestion, blanks: newBlanks });
   };
 
-  // Get display label for question type
+  // Just a little cleaner this way
   const getTypeLabel = (type: QuestionType) => {
     switch (type) {
       case "TrueFalse":
@@ -247,7 +256,7 @@ export default function QuestionsEditor() {
     }
   };
 
-  // Render question preview in list
+  // Show the question based on the Q type, don't think should be editable
   const renderQuestionPreview = (question: Question) => {
     switch (question.type) {
       case "TrueFalse":
@@ -294,7 +303,7 @@ export default function QuestionsEditor() {
     }
   };
 
-  // Render the type-specific editor
+  // Render the Q editor based on the specific Q type
   const renderQuestionEditor = () => {
     if (!editingQuestion) return null;
 
@@ -306,6 +315,7 @@ export default function QuestionsEditor() {
               <strong>Answers:</strong>
             </Form.Label>
             <div className="d-flex flex-column gap-2">
+              {/* Assignment specifies that T/F must be radios */}
               <Form.Check
                 type="radio"
                 id="true-option"
@@ -353,13 +363,14 @@ export default function QuestionsEditor() {
               <strong>Possible Correct Answers:</strong>
             </Form.Label>
             <p className="text-muted small">
-              Enter all possible correct answers. Answers are case-insensitive.
+              Enter all possible correct answers (case-insensitive).
             </p>
             {editingQuestion.blanks.map((blank, index) => (
               <div key={index} className="d-flex align-items-center gap-2 mb-2">
                 <span className="text-muted small" style={{ width: "120px" }}>
                   Possible Answer:
                 </span>
+                {/* All options should be editable */}
                 <Form.Control
                   type="text"
                   value={blank}
@@ -367,6 +378,7 @@ export default function QuestionsEditor() {
                   placeholder="Enter possible answer..."
                   className="flex-grow-1"
                 />
+                {/* Give the user ability to delete an option */}
                 {editingQuestion.blanks.length > 1 && (
                   <Button
                     variant="outline-danger"
@@ -400,6 +412,7 @@ export default function QuestionsEditor() {
                 key={choice.id}
                 className="d-flex align-items-center gap-2 mb-2"
               >
+                {/* I think using radios here is the easiest solution ? */}
                 <Form.Check
                   type="radio"
                   name="correctAnswer"
@@ -461,7 +474,7 @@ export default function QuestionsEditor() {
 
   return (
     <div className="p-4">
-      {/* Nav tabs to the other quiz editor pages */}
+      {/* Nav tabs to the other quiz editor pages (Details, Preview) */}
       <div className="d-flex justify-content-between align-items-center mb-3">
         <Nav variant="tabs">
           <Nav.Item>
@@ -491,7 +504,7 @@ export default function QuestionsEditor() {
         </div>
       </div>
 
-      {/* Questions List */}
+      {/* Questions List, should start empty */}
       {!editingQuestion && (
         <>
           <div className="mb-3">
@@ -527,6 +540,7 @@ export default function QuestionsEditor() {
                     <Button
                       variant="outline-primary"
                       size="sm"
+                      // Instead of handling this directly, give to the helper function
                       onClick={() => handleEditQuestion(question)}
                     >
                       <FaPencilAlt />
@@ -534,6 +548,7 @@ export default function QuestionsEditor() {
                     <Button
                       variant="outline-danger"
                       size="sm"
+                      // Same idea
                       onClick={() => handleDeleteQuestion(question._id)}
                     >
                       <FaTrash />
@@ -546,7 +561,7 @@ export default function QuestionsEditor() {
         </>
       )}
 
-      {/* Question Editor */}
+      {/* If you're editing a question, show this! */}
       {editingQuestion && (
         <Card className="border-danger">
           <Card.Header className="bg-light">
@@ -561,6 +576,8 @@ export default function QuestionsEditor() {
                   style={{ width: "200px" }}
                   placeholder="Question Title"
                 />
+                {/* Does changing the Q type after adding data cause an issue? */}
+                {/* TO-DO: Test that */}
                 <Form.Select
                   value={editingQuestion.type}
                   onChange={(e) =>
@@ -593,6 +610,7 @@ export default function QuestionsEditor() {
               <Form.Label>
                 <strong>Question:</strong>
               </Form.Label>
+              {/* All 3 Q types need an actual text field for the Q itself, almost forgot */}
               <Form.Control
                 as="textarea"
                 rows={3}
@@ -616,7 +634,7 @@ export default function QuestionsEditor() {
         </Card>
       )}
 
-      {/* Bottom navigation */}
+      {/* Bottom navigation, under the Q editing - for saving the progress */}
       <div className="d-flex justify-content-between mt-4 pt-3 border-top">
         <Button
           variant="outline-secondary"
