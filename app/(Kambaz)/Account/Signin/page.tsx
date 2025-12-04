@@ -29,7 +29,6 @@ export default function Signin() {
           setCredentials({ ...credentials, username: e.target.value })
         }
       />
-
       <FormControl
         value={credentials.password}
         onChange={(e) =>
@@ -44,6 +43,30 @@ export default function Signin() {
       <Link id="wd-signup-link" href="/Account/Signup">
         Sign up
       </Link>
+      <div style={{ marginTop: "50px" }} />
+      <h3>Submission Info:</h3>
+      <p> Student: Benjamin Jaccaci </p>
+      <p> Section: Fall 2025, Undergrad Section 11597 </p>
+      <p>
+        {" "}
+        React Frontend Github:{" "}
+        <Link
+          href="https://github.com/benjaccaci/ben_webdev"
+          id="wd-github-front"
+        >
+          React Github Repo{" "}
+        </Link>{" "}
+      </p>
+      <p>
+        {" "}
+        NodeJS Backend Github:{" "}
+        <Link
+          href="https://github.com/benjaccaci/kambaz-node-server-app"
+          id="wd-github-back"
+        >
+          NodeJS Github Repo{" "}
+        </Link>{" "}
+      </p>
     </div>
   );
 }
