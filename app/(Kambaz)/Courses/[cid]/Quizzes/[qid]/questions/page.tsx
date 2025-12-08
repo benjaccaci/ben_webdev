@@ -7,41 +7,25 @@ import { Button, Form, Card, Badge, Nav } from "react-bootstrap";
 import { FaPlus, FaTrash, FaPencilAlt, FaArrowRight } from "react-icons/fa";
 import Link from "next/link";
 import * as client from "../../../../client";
-import { Question, QuestionType, Choice } from "./data";
-
-type Quiz = {
-  _id: string;
-  title: string;
-  points: number;
-  questions: number;
-  questionArray: Question[];
-};
+import { Question, QuestionType } from "./data";
+import { Quiz } from "../../data";
 
 export default function QuestionsEditor() {
   const { cid, qid } = useParams();
   const router = useRouter();
-
   const [quiz, setQuiz] = useState<Quiz | null>(null);
-  const [loading, setLoading] = useState(true);
   const [editingQuestion, setEditingQuestion] = useState<Question | null>(null);
   const [isNewQuestion, setIsNewQuestion] = useState(false);
 
   // Used for refreshing after any changes are made to the Qs
   const fetchQuiz = async () => {
-    try {
-      setLoading(true);
-      const data = await client.findQuizById(qid as string);
-      setQuiz({
-        ...data,
-        questionArray: Array.isArray(data.questionArray)
-          ? data.questionArray
-          : [],
-      });
-    } catch (error) {
-      console.error("Error fetching quiz:", error);
-    } finally {
-      setLoading(false);
-    }
+    const data = await client.findQuizById(qid as string);
+    setQuiz({
+      ...data,
+      questionArray: Array.isArray(data.questionArray)
+        ? data.questionArray
+        : [],
+    });
   };
 
   useEffect(() => {
@@ -84,10 +68,7 @@ export default function QuestionsEditor() {
   };
 
   const handleEditQuestion = (question: Question) => {
-    // BUG was that editing the question would ruin the list
-    // Found the solution online, just a deep copy (from OOD)
-    const copy = JSON.parse(JSON.stringify(question));
-    setEditingQuestion(copy);
+    setEditingQuestion(question);
     setIsNewQuestion(false);
   };
 
@@ -99,24 +80,19 @@ export default function QuestionsEditor() {
   const handleSaveQuestion = async () => {
     if (!editingQuestion || !quiz) return;
 
-    try {
-      // Not sure if I need to differentiate between new + existing Qs
-      if (isNewQuestion) {
-        await client.addQuestionToQuiz(quiz._id, editingQuestion);
-      } else {
-        await client.updateQuestion(
-          quiz._id,
-          editingQuestion._id,
-          editingQuestion
-        );
-      }
-      await fetchQuiz();
-      setEditingQuestion(null);
-      setIsNewQuestion(false);
-    } catch (error) {
-      // Being very cautious with these try/catches, why not?
-      console.error("Error saving question:", error);
+    // Not sure if I need to differentiate between new + existing Qs
+    if (isNewQuestion) {
+      await client.addQuestionToQuiz(quiz._id, editingQuestion);
+    } else {
+      await client.updateQuestion(
+        quiz._id,
+        editingQuestion._id,
+        editingQuestion
+      );
     }
+    await fetchQuiz();
+    setEditingQuestion(null);
+    setIsNewQuestion(false);
   };
 
   const handleDeleteQuestion = async (questionId: string) => {
@@ -124,12 +100,8 @@ export default function QuestionsEditor() {
     const confirmed = window.confirm("Delete this question?");
     if (!confirmed) return;
 
-    try {
-      await client.deleteQuestion(quiz._id, questionId);
-      await fetchQuiz();
-    } catch (error) {
-      console.error("Error deleting question:", error);
-    }
+    await client.deleteQuestion(quiz._id, questionId);
+    await fetchQuiz();
   };
 
   // Update a field on the editing question
@@ -138,7 +110,7 @@ export default function QuestionsEditor() {
     setEditingQuestion({ ...editingQuestion, [field]: value } as Question);
   };
 
-  // Handle type change - need to TEST this
+  // Handle type change - need to TEST this. Do all existing fields get retained?
   const handleTypeChange = (newType: QuestionType) => {
     if (!editingQuestion) return;
 
@@ -178,6 +150,7 @@ export default function QuestionsEditor() {
     if (!editingQuestion || editingQuestion.type !== "MultipleChoice") return;
     setEditingQuestion({
       ...editingQuestion,
+      // Map through the choices, if it matches the ID then update text
       choices: editingQuestion.choices.map((c) =>
         c.id === choiceId ? { ...c, text } : c
       ),
@@ -190,6 +163,7 @@ export default function QuestionsEditor() {
       ...editingQuestion,
       choices: editingQuestion.choices.map((c) => ({
         ...c,
+        // If the index matches the chosen Choice, then set it to correct
         isCorrect: c.id === choiceId,
       })),
     });
@@ -209,6 +183,7 @@ export default function QuestionsEditor() {
 
   const removeChoice = (choiceId: string) => {
     if (!editingQuestion || editingQuestion.type !== "MultipleChoice") return;
+    // Doesn't make sense to have less than 2 choices
     if (editingQuestion.choices.length <= 2) return;
 
     const newChoices = editingQuestion.choices.filter((c) => c.id !== choiceId);
@@ -223,6 +198,7 @@ export default function QuestionsEditor() {
   const updateBlank = (index: number, value: string) => {
     if (!editingQuestion || editingQuestion.type !== "FillInTheBlank") return;
     const newBlanks = [...editingQuestion.blanks];
+    // Add the new value to the blanks array at the given index
     newBlanks[index] = value;
     setEditingQuestion({ ...editingQuestion, blanks: newBlanks });
   };
@@ -237,6 +213,7 @@ export default function QuestionsEditor() {
 
   const removeBlank = (index: number) => {
     if (!editingQuestion || editingQuestion.type !== "FillInTheBlank") return;
+    // Need to have at least one possible correct blank
     if (editingQuestion.blanks.length <= 1) return;
 
     const newBlanks = editingQuestion.blanks.filter((_, i) => i !== index);
@@ -265,12 +242,12 @@ export default function QuestionsEditor() {
             <div
               className={question.correctAnswer ? "text-success fw-bold" : ""}
             >
-              {question.correctAnswer ? "✓ " : "○ "}True
+              True
             </div>
             <div
               className={!question.correctAnswer ? "text-success fw-bold" : ""}
             >
-              {!question.correctAnswer ? "✓ " : "○ "}False
+              False
             </div>
           </div>
         );
@@ -279,9 +256,9 @@ export default function QuestionsEditor() {
           <div className="small">
             <span className="text-muted">Correct answers: </span>
             {(question.blanks || []).map((blank, i) => (
-              <Badge key={i} bg="success" className="me-1">
-                {blank || "(empty)"}
-              </Badge>
+              <span key={i} className="me-2 text-success fw-bold">
+                {blank}
+              </span>
             ))}
           </div>
         );
@@ -294,7 +271,6 @@ export default function QuestionsEditor() {
                 key={choice.id}
                 className={choice.isCorrect ? "text-success fw-bold" : ""}
               >
-                {choice.isCorrect ? "✓ " : "○ "}
                 {choice.text || "(empty)"}
               </div>
             ))}
@@ -312,7 +288,7 @@ export default function QuestionsEditor() {
         return (
           <Form.Group className="mb-4">
             <Form.Label>
-              <strong>Answers:</strong>
+              <p className="fw-bold"> Answers:</p>
             </Form.Label>
             <div className="d-flex flex-column gap-2">
               {/* Assignment specifies that T/F must be radios */}
@@ -360,14 +336,14 @@ export default function QuestionsEditor() {
         return (
           <Form.Group className="mb-4">
             <Form.Label>
-              <strong>Possible Correct Answers:</strong>
+              <p className="fw-bold">Possible Correct Answers:</p>
             </Form.Label>
             <p className="text-muted small">
-              Enter all possible correct answers (case-insensitive).
+              Enter all possible correct answers.
             </p>
             {editingQuestion.blanks.map((blank, index) => (
               <div key={index} className="d-flex align-items-center gap-2 mb-2">
-                <span className="text-muted small" style={{ width: "120px" }}>
+                <span className="text-muted small" style={{ width: "160px" }}>
                   Possible Answer:
                 </span>
                 {/* All options should be editable */}
@@ -405,7 +381,7 @@ export default function QuestionsEditor() {
         return (
           <Form.Group className="mb-4">
             <Form.Label>
-              <strong>Answers:</strong>
+              <p className="fg-bold">Answers:</p>
             </Form.Label>
             {editingQuestion.choices.map((choice) => (
               <div
@@ -420,13 +396,8 @@ export default function QuestionsEditor() {
                   onChange={() => setCorrectChoice(choice.id)}
                   title="Mark as correct answer"
                 />
-                <span
-                  className={`small ${
-                    choice.isCorrect ? "text-success fw-bold" : "text-muted"
-                  }`}
-                  style={{ width: "100px" }}
-                >
-                  {choice.isCorrect ? "Correct Answer" : "Possible Answer"}
+                <span className={"text-muted"} style={{ width: "100px" }}>
+                  {"Possible Answer"}
                 </span>
                 <Form.Control
                   type="text"
@@ -464,10 +435,6 @@ export default function QuestionsEditor() {
     0
   );
 
-  if (loading) {
-    return <div className="p-4">Loading...</div>;
-  }
-
   if (!quiz) {
     return <div className="p-4">Quiz not found</div>;
   }
@@ -499,8 +466,8 @@ export default function QuestionsEditor() {
             </Nav.Link>
           </Nav.Item>
         </Nav>
-        <div className="text-muted">
-          Points: <strong>{totalPoints}</strong>
+        <div className="d-flex text-muted">
+          Points: <p className="fg-bold">{totalPoints}</p>
         </div>
       </div>
 
@@ -525,11 +492,9 @@ export default function QuestionsEditor() {
                 <div className="d-flex justify-content-between align-items-start">
                   <div className="flex-grow-1">
                     <div className="d-flex align-items-center gap-2 mb-2">
-                      <strong>
-                        Q{index + 1}: {question.title || "Untitled"}
-                      </strong>
-                      <Badge bg="danger">{getTypeLabel(question.type)}</Badge>
-                      <Badge bg="secondary">{question.points || 0} pts</Badge>
+                      <p className="fg-bold">
+                        Q{index + 1}: {question.title || "No title for Q"}
+                      </p>
                     </div>
                     <p className="text-muted mb-2">
                       {question.text || "No question text"}
@@ -596,10 +561,7 @@ export default function QuestionsEditor() {
                   type="number"
                   value={editingQuestion.points ?? 0}
                   onChange={(e) =>
-                    updateEditingQuestion(
-                      "points",
-                      parseInt(e.target.value) || 0
-                    )
+                    updateEditingQuestion("points", parseInt(e.target.value))
                   }
                 />
               </div>
@@ -608,7 +570,7 @@ export default function QuestionsEditor() {
           <Card.Body>
             <Form.Group className="mb-4">
               <Form.Label>
-                <strong>Question:</strong>
+                <p className="fg-bold">Question:</p>
               </Form.Label>
               {/* All 3 Q types need an actual text field for the Q itself, almost forgot */}
               <Form.Control

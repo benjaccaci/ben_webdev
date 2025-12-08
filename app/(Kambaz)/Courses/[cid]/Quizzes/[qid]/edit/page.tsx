@@ -14,17 +14,10 @@ export default function QuizEditor() {
   const dispatch = useDispatch();
 
   const [quiz, setQuiz] = useState<any>({});
-  const [loading, setLoading] = useState(true);
 
   const fetchQuiz = async () => {
-    try {
-      const data = await client.findQuizById(qid as string);
-      setQuiz({ ...data });
-    } catch (error) {
-      console.error("Error fetching quiz:", error);
-    } finally {
-      setLoading(false);
-    }
+    const data = await client.findQuizById(qid as string);
+    setQuiz({ ...data });
   };
 
   useEffect(() => {
@@ -55,10 +48,6 @@ export default function QuizEditor() {
   const cancel = () => {
     router.push(`/Courses/${cid}/Quizzes`);
   };
-
-  if (loading) {
-    return <div className="container py-3">Loading...</div>;
-  }
 
   return (
     <div className="container py-3">
@@ -92,7 +81,7 @@ export default function QuizEditor() {
       </Nav>
 
       {/* Same FormGroup styling for all the fields, just different data types */}
-      {/* Should use FormGroup, Table, or something else?*/}
+      {/* Should use FormGroup, InputGroup, Table, or something else?*/}
       <div className="border rounded p-3">
         <Form.Group className="mb-3">
           <Form.Label>Quiz Title</Form.Label>

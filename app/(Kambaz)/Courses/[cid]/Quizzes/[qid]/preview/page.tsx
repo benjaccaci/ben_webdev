@@ -13,16 +13,7 @@ import {
 } from "react-icons/fa";
 import * as client from "../../../../client";
 import { Question } from "../questions/data";
-
-type Quiz = {
-  _id: string;
-  title: string;
-  description: string;
-  points: number;
-  questions: number;
-  timeLimitMinutes: number;
-  questionArray: Question[];
-};
+import { Quiz } from "../../data";
 
 type UserAnswers = {
   [questionId: string]: string | boolean;
@@ -33,7 +24,6 @@ export default function QuizPreview() {
   const router = useRouter();
 
   const [quiz, setQuiz] = useState<Quiz | null>(null);
-  const [loading, setLoading] = useState(true);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [userAnswers, setUserAnswers] = useState<UserAnswers>({});
   const [submitted, setSubmitted] = useState(false);
@@ -41,20 +31,13 @@ export default function QuizPreview() {
 
   // Get the quiz from the backend and load it
   const fetchQuiz = async () => {
-    try {
-      setLoading(true);
-      const data = await client.findQuizById(qid as string);
-      setQuiz({
-        ...data,
-        questionArray: Array.isArray(data.questionArray)
-          ? data.questionArray
-          : [],
-      });
-    } catch (error) {
-      console.error("Error fetching quiz:", error);
-    } finally {
-      setLoading(false);
-    }
+    const data = await client.findQuizById(qid as string);
+    setQuiz({
+      ...data,
+      questionArray: Array.isArray(data.questionArray)
+        ? data.questionArray
+        : [],
+    });
   };
 
   useEffect(() => {
@@ -90,7 +73,7 @@ export default function QuizPreview() {
   const calculateScore = (): number => {
     if (!quiz) return 0;
     let totalScore = 0;
-    quiz.questionArray.forEach((question) => {
+    quiz.questionArray.map((question) => {
       // Use the answer checking function here
       if (isAnswerCorrect(question, userAnswers[question._id])) {
         totalScore += question.points;
@@ -99,7 +82,7 @@ export default function QuizPreview() {
     return totalScore;
   };
 
-  // When the user changes the answer, update the Question object
+  // When the user changes the answer, update the local UserAnswers object
   const handleAnswerChange = (questionId: string, answer: any) => {
     setUserAnswers((prev) => ({
       ...prev,
@@ -160,9 +143,10 @@ export default function QuizPreview() {
               ) : (
                 <FaTimes className="text-danger" />
               ))}
-            <strong>Question {index + 1}</strong>
+            {/*Q index starts at 0, so add 1*/}
+            <span> Question {index + 1}</span>
           </div>
-          <span>{question.points} pts</span>
+          <p>{question.points} pts</p>
         </Card.Header>
         <Card.Body>
           <p className="mb-4" style={{ whiteSpace: "pre-wrap" }}>
@@ -179,7 +163,7 @@ export default function QuizPreview() {
                   id={`${question._id}-${choice.id}`}
                   name={question._id}
                   label={
-                    <span
+                    <p
                       className={
                         submitted
                           ? choice.isCorrect
@@ -192,7 +176,7 @@ export default function QuizPreview() {
                     >
                       {choice.text}
                       {submitted && choice.isCorrect && " ✓"}
-                    </span>
+                    </p>
                   }
                   checked={userAnswer === choice.id}
                   // Make sure to change the answer after any new selection
@@ -211,7 +195,7 @@ export default function QuizPreview() {
                 id={`${question._id}-true`}
                 name={question._id}
                 label={
-                  <span
+                  <p
                     className={
                       submitted
                         ? question.correctAnswer === true
@@ -223,8 +207,8 @@ export default function QuizPreview() {
                     }
                   >
                     True
-                    {submitted && question.correctAnswer === true && " ✓"}
-                  </span>
+                    {submitted && question.correctAnswer === true && "✓"}
+                  </p>
                 }
                 checked={userAnswer === true}
                 onChange={() => handleAnswerChange(question._id, true)}
@@ -235,7 +219,7 @@ export default function QuizPreview() {
                 id={`${question._id}-false`}
                 name={question._id}
                 label={
-                  <span
+                  <p
                     className={
                       submitted
                         ? question.correctAnswer === false
@@ -248,7 +232,7 @@ export default function QuizPreview() {
                   >
                     False
                     {submitted && question.correctAnswer === false && " ✓"}
-                  </span>
+                  </p>
                 }
                 checked={userAnswer === false}
                 onChange={() => handleAnswerChange(question._id, false)}
@@ -281,13 +265,13 @@ export default function QuizPreview() {
               {/*Not sure if this is necessary, but is nice to have*/}
               {submitted && !isCorrect && (
                 <div className="mt-2 text-success small">
-                  <strong>Correct answer(s):</strong>{" "}
-                  {question.blanks.join(", ")}
+                  <p>Correct answer(s):</p> {question.blanks.join(", ")}
                 </div>
               )}
             </div>
           )}
 
+          {/* Panel showing correct/incorrect after EACH question */}
           {submitted && !isCorrect && (
             <Alert variant="danger" className="mt-3 mb-0 py-2">
               <small>Incorrect</small>
@@ -305,15 +289,12 @@ export default function QuizPreview() {
 
   // Question array is taken from the quiz data type
   const questionArray = quiz?.questionArray || [];
+  // Reduce works like an accumulator
   const totalPoints = questionArray.reduce(
     (sum, q) => sum + (q.points || 0),
     0
   );
   const currentQuestion = questionArray[currentQuestionIndex];
-
-  if (loading) {
-    return <div className="p-4">Loading...</div>;
-  }
 
   if (!quiz) {
     return <div className="p-4">Quiz not found</div>;
@@ -357,12 +338,13 @@ export default function QuizPreview() {
       {/* Score Summary - IMPORTANT that it is only after submission */}
       {submitted && (
         <Alert
+          // Green if scored 100%, yellow if not
           variant={score === totalPoints ? "success" : "warning"}
           className="mb-4"
         >
           <h5 className="mb-2">Quiz Completed!</h5>
           <p className="mb-1">
-            <strong>Your Score:</strong> {score} / {totalPoints} points (
+            <p>Your Score:</p> {score} / {totalPoints} points (
             {totalPoints > 0 ? Math.round((score / totalPoints) * 100) : 0}%)
           </p>
         </Alert>
@@ -412,9 +394,9 @@ export default function QuizPreview() {
               </>
             ) : (
               <>
-                <span>
-                  <strong>Final Score:</strong> {score} / {totalPoints}
-                </span>
+                <p>
+                  <span>Final Score:</span> {score} / {totalPoints}
+                </p>
                 <Button variant="outline-primary" onClick={handleRetake}>
                   Retake Quiz
                 </Button>

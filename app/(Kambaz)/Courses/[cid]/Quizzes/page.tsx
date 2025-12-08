@@ -83,6 +83,7 @@ export default function Quizzes() {
       <div className="d-flex justify-content-between align-items-center flex-wrap gap-2">
         <h1 className="mb-0">Quizzes</h1>
       </div>
+      {/* SEARCH BAR */}
       {/* Use Search to do quiz text search - NEED TO FIX */}
       <div className="d-flex justify-content-between align-items-center flex-wrap gap-3">
         <InputGroup style={{ maxWidth: "340px" }}>
@@ -96,6 +97,7 @@ export default function Quizzes() {
           />
         </InputGroup>
 
+        {/* ADD QUIZ + BUTTON */}
         <div className="d-flex flex-wrap align-items-center gap-2">
           <Button
             variant="danger"
@@ -106,11 +108,13 @@ export default function Quizzes() {
           </Button>
         </div>
       </div>
+
+      {/* ASSIGNMENT QUIZZES  */}
       <div className="border rounded">
         <div className="d-flex align-items-center bg-light p-3 border-bottom">
           <FaEllipsisV className="me-2" />
           <FaArrowDown className="me-3" />
-          <strong className="me-auto">Assignment Quizzes</strong>
+          <span className="me-auto fw-bold">Assignment Quizzes</span>
           <span className="text-muted me-2">100% of Total</span>
           <Button size="sm" variant="light" className="me-2">
             +
@@ -129,6 +133,7 @@ export default function Quizzes() {
               <div className="flex-grow-1">
                 <div className="d-flex justify-content-between align-items-start">
                   <div>
+                    {/* QUIZ LINK */}
                     <Link
                       href={`/Courses/${cid}/Quizzes/${quiz._id}`}
                       className="fw-bold text-dark text-decoration-none"
